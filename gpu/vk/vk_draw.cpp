@@ -3985,7 +3985,16 @@ void draw(VkCommandBuffer cmd, NvnState& s, const DrawArgs& d) {
         wait_for(cp->ready);
     }
     if (exposure_log_on() && cp) exposure_note(s, *cp);
-    if (cp->failed) SKIP_HERE();
+    if (cp->failed) {
+        // (Epona: a draw lost to a program that does not translate used to be counted and not named. The first 30 programs are named, once
+        // each, with their stages' code keys: these are the failures that matter, the others are not met in play)
+        static std::mutex told_mu;
+        static std::unordered_set<uint64_t> told_keys;
+        std::lock_guard<std::mutex> lk(told_mu);
+        if (told_keys.size() < 30 && told_keys.insert(cp->key).second)
+            logf("vk: a draw left out: its program %016llx does not translate; its code:%s", (unsigned long long)cp->key, program_code_keys(s).c_str());
+        SKIP_HERE();
+    }
     Program& p = const_cast<Program&>(*cp);
     PipeEntry* pe;
     {
