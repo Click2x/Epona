@@ -345,8 +345,18 @@ def main():
             for i, (area, p) in enumerate(plan, 1):
                 if visit_key(area, p) in done:
                     continue
+                try:
+                    patched = patch_slot(original, area, p)
+                except ValueError as e:   # (an area this tool cannot write into the save, such as a name too long for its field: left out)
+                    line = "%3d/%d %-34s SKIPPED: %s" % (i, len(plan), area, e)
+                    print(line)
+                    log.write(line + "\n")
+                    done.add(visit_key(area, p))
+                    with open(progress_path, "w", encoding="utf-8") as f:
+                        json.dump(sorted(done), f)
+                    continue
                 with open(slot_path, "wb") as f:
-                    f.write(patch_slot(original, area, p))
+                    f.write(patched)
                 env = dict(os.environ, HOS_INPUT_SCRIPT=script)
                 before, t0 = notes_count(install), time.time()
                 proc = subprocess.Popen([exe], cwd=install, env=env)
