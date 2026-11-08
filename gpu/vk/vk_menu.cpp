@@ -139,12 +139,15 @@ Row rows[] = {
     {"Swap A and B", nullptr, 0, 0, 0, nullptr,
      "Swaps the gamepad's A and B buttons, as on an Xbox or PlayStation pad: the bottom button confirms and the right one goes back "
      "(the Switch has them the other way round). Press again to put them back. The keyboard's keys are on the Controls page."},
+    {"Restart game", nullptr, 0, 0, 0, nullptr,
+     "Closes the game and starts it again, so the settings that say they apply after a restart (Handheld profile, Ultrawide) take "
+     "effect. Press Enter once to ask and again to restart; any other key cancels. Whatever the game has not saved is lost."},
     {"Quit to desktop", nullptr, 0, 0, 0, nullptr,
      "Closes the game. Press Enter once to ask and again to quit; any other key cancels. Whatever the game has not saved is lost."},
 };
 constexpr int kRows = sizeof rows / sizeof rows[0];
-constexpr int kRowControls = kRows - 3, kRowSwap = kRows - 2, kRowQuit = kRows - 1;   // (the actions, the last three rows)
-bool quit_armed = false;                                                                // (the first Enter on "Quit to desktop" was pressed)
+constexpr int kRowControls = kRows - 4, kRowSwap = kRows - 3, kRowRestart = kRows - 2, kRowQuit = kRows - 1;   // (the actions, the last four rows)
+int armed_row = -1;   // (the row whose first Enter was pressed: restart and quit ask twice; -1 none)
 constexpr int kMenuWidth = 360;   // (at a scale of 1: 720 lines)
 
 std::atomic<bool> open_now{false};
@@ -452,8 +455,8 @@ void paint_menu(HDC dc, uint32_t w, uint32_t h, int s) {
             const int b = can_bind() ? host->binding(HOS_BIND_PAD, HOS_SW_B, 0) : -1;
             snprintf(v, sizeof v, "%s", a == HOS_PAD_SOUTH && b == HOS_PAD_EAST ? "swapped"
                                         : a == HOS_PAD_EAST && b == HOS_PAD_SOUTH ? "Switch layout" : "custom");
-        } else if (i == kRowQuit) {
-            snprintf(v, sizeof v, "%s", quit_armed ? "Enter again to quit" : "");
+        } else if (i == kRowQuit || i == kRowRestart) {
+            snprintf(v, sizeof v, "%s", armed_row != i ? "" : i == kRowQuit ? "Enter again to quit" : "Enter again to restart");
         } else if (!rows[i].value) {
             snprintf(v, sizeof v, ">");   // (a page)
         } else {
@@ -669,6 +672,33 @@ void swap_a_b() {
     save();
 }
 
+/// (Epona) The game closed and started again with the same command line, in the same folder and with the same environment, for the
+/// settings that apply at start. The new copy is started a couple of seconds after this one ends (a small command that waits, then
+/// starts it), so it never meets this one's files still open (the shader caches are several GB). Windows only: the Linux shim has no
+/// process launching, there it does nothing but say so in the log
+void restart_game() {
+#ifdef _WIN32
+    char cwd[MAX_PATH] = {};
+    GetCurrentDirectoryA(MAX_PATH, cwd);
+    std::string cmd = "cmd.exe /d /c ping -n 3 127.0.0.1 >nul & start \"\" ";
+    cmd += GetCommandLineA();
+    STARTUPINFOA si{};
+    si.cb = sizeof si;
+    PROCESS_INFORMATION pi{};
+    std::vector<char> line(cmd.begin(), cmd.end());
+    line.push_back(0);
+    if (CreateProcessA(nullptr, line.data(), nullptr, nullptr, FALSE, CREATE_NO_WINDOW, nullptr, cwd[0] ? cwd : nullptr, &si, &pi)) {
+        CloseHandle(pi.hThread);
+        CloseHandle(pi.hProcess);
+        logf("menu: restart");
+        ExitProcess(0);
+    }
+    logf("menu: restart failed (the new copy could not be started: error %lu), the game keeps running", (unsigned long)GetLastError());
+#else
+    logf("menu: restart is not available on this platform");
+#endif
+}
+
 void menu_tick() {
     fullscreen_tick();
     enum { K_N = 10 };
@@ -704,7 +734,7 @@ void menu_tick() {
     cur_scale = scale;
     if (press[0] || press[6]) {
         open_now = !open_now.load(), changed = true;
-        page = 0, listening = 0, quit_armed = false;
+        page = 0, listening = 0, armed_row = -1;
     }
     if (open_now.load() && page == 1) {   // (hookshot) the Controls page
         if (!can_bind()) page = 0;
@@ -753,19 +783,26 @@ void menu_tick() {
         }
         if (changed) redraw_menu(scale);
     } else if (open_now.load()) {
-        if (quit_armed && (press[1] || press[2] || press[3] || press[4] || press[5] || press[8] || press[9])) quit_armed = false, changed = true;
+        if (armed_row >= 0 && (press[1] || press[2] || press[3] || press[4] || press[5] || press[8] || press[9])) armed_row = -1, changed = true;
         if (press[5]) open_now = false;
         if (press[7] && !rows[selected].value) {
             if (selected == kRowControls) {
                 if (can_bind()) page = 1, csel = 0, ccol = 0, changed = true;
             } else if (selected == kRowSwap) {
                 if (can_bind()) swap_a_b(), changed = true;
-            } else if (selected == kRowQuit) {
-                if (quit_armed) {
-                    logf("menu: quit to desktop");
-                    ExitProcess(0);
+            } else if (selected == kRowRestart || selected == kRowQuit) {
+                if (armed_row == selected) {
+                    armed_row = -1;
+                    if (selected == kRowRestart) {
+                        restart_game();   // (does not return when it works)
+                    } else {
+                        logf("menu: quit to desktop");
+                        ExitProcess(0);
+                    }
+                } else {
+                    armed_row = selected;
                 }
-                quit_armed = true, changed = true;
+                changed = true;
             }
         }
         if (press[1]) selected = (selected + kRows - 1) % kRows, changed = true;
