@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 The Epona contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Epona's guided terminal menu: pick your game file, check this PC, say yes or no to what gets downloaded, and watch the build.
 
 Start it with `py -I nx2/make_game.py` (no arguments, in a terminal), or double-click epona.bat. Everything happens inside it; the

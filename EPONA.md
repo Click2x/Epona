@@ -13,7 +13,8 @@ If the original author wants any of these changes, they are welcome to take them
 
 **Modified from Hookshot** (upstream commit `ba594da`, by NotRexed) by the Epona maintainers in November 2026; the git history and
 `git diff ba594da` show every change, as the GPL asks. **See also:** [`LEGAL.md`](LEGAL.md) (you must legally own the game),
-[`TRANSPARENCY.md`](TRANSPARENCY.md) (what was checked and what was not) and [`docs/WHAT_TO_EXPECT.md`](docs/WHAT_TO_EXPECT.md).
+[`TRANSPARENCY.md`](TRANSPARENCY.md) (what was checked and what was not), [`THIRD_PARTY.md`](THIRD_PARTY.md) (every third-party component and
+its license) and [`docs/WHAT_TO_EXPECT.md`](docs/WHAT_TO_EXPECT.md).
 
 ## What Epona changes
 
@@ -26,6 +27,7 @@ Nothing here has been through a full play-test yet; see [Findings](#findings) fo
 | Checks before a 40-minute build | `python` on PATH (this run only), missing Python packages, 64-bit Python, disk and memory, a renderer to build, the AV1 Video Extension, a CPU with AVX2, graphics cards that probably lack mesh shaders | `nx2/make_game.py` |
 | Compiler | Offers llvm-mingw (no Visual Studio, no emsdk) with a pinned version and SHA-256 | `nx2/make_game.py` |
 | A guided menu | Run with no arguments (or double-click `epona.bat`) for a menu that stays open: Install the game, Check this PC, See what gets downloaded, Settings, Help. It finds your `.nup`, suggests a standard install folder, takes the language, shows a checklist of what is missing, and asks once, item by item, before any download. During the build it draws steps and one progress line and keeps a log file. Every command-line option still works unchanged | `nx2/epona_ui.py`, `nx2/make_game.py`, `epona.bat` |
+| Credits and licenses carried forward | The original's credits (including its newest EvilBoyce entry) and license text are kept word for word in the readme. `THIRD_PARTY.md` lists every third-party component and its license, read from the files themselves. Each finished game folder gets a `licenses` folder (GPL-3.0, suyu's GPL texts, Opus, SDL, FFmpeg's, `THIRD_PARTY.md`, a short README). Every new file carries an SPDX license header; the original files' headers are untouched | `readme.md`, `THIRD_PARTY.md`, `nx2/make_game.py` |
 | First-run notice | Before the first build the menu shows a short legal notice (you must own the game; do not share what you build; unofficial; no warranty) and asks you to confirm. Kept only in your own settings file | `nx2/epona_ui.py`, `LEGAL.md` |
 | Pictures | The screens in `docs/screens` are drawn by the menu's own code on sample data (`scripts/render_screens.py`), and `scripts/make_announcement.py` builds a 1280x720 announcement PNG from them with Edge. Original shapes and text only | `scripts/`, `docs/` |
 | Vulkan headers | Offers the three pinned header archives, SHA-256 checked | `nx2/make_game.py` |

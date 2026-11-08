@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 The Epona contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Makes the announcement graphic: a 1280x720 PNG for Discord and the like, from the screens in docs/screens.
 
 Run:  py -I scripts/make_announcement.py --link github.com/your-name/Epona

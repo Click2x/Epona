@@ -46,6 +46,9 @@ from a law, a court or a rights holder. If you are unsure about your situation, 
   ([`LICENSE`](LICENSE)). It contains code under other compatible licenses (Eden, suyu, Sirit, SDL, Opus, FFmpeg and others), which keep their
   own notices. What Epona changed is listed in [`EPONA.md`](EPONA.md); if you distribute a modified version you must keep these notices and
   offer its source.
+- **Every third-party component, its license and where the text is** are listed in [`THIRD_PARTY.md`](THIRD_PARTY.md), and the people
+  behind them are credited in [`readme.md`](readme.md#credits). That list notes one thing that is **not resolved** (Sirit's license
+  files disagree with its source headers) so nobody has to find it by accident.
 - **There is no warranty.** The software is provided "as is", as the GPL says (sections 15 and 16): no promise that it works, that it is
   safe, or that it is fit for any purpose, and no liability for any loss or damage. You use it at your own risk.
 - Tools Epona can download come from third parties and are run on your PC. Read the list first, and decline anything you do not want.

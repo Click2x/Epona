@@ -249,6 +249,8 @@ Hookshot exists thanks to the work of many people. **Epona is a fork of it**: ev
 own changes are the ones listed in [EPONA.md](EPONA.md).
 
 - **NotRexed**: Hookshot, BlueShell (Mario Kart World), Skybound (Tears of the Kingdom) and the a64-kit tools.
+- **EvilBoyce** (Discord: evilmfkr, [fork](https://github.com/evilmfkr/Hookshot)): Ocarina of Time's foliage culling, ambient light,
+  water and fog fixes, the freeze after Load, the exposure flashes, and the rendering diagnostics tools.
 - **[Eden](https://git.eden-emu.dev/eden-emu/eden)** and **Eglantine**: the shader recompiler and Switch 2 shader work.
 - **suyu**: the graphics decoders and the AArch64 translator.
 - **[seedds/nxnative](https://github.com/seedds/nxnative)**: reference for how task and mesh shaders work.
@@ -265,12 +267,25 @@ own changes are the ones listed in [EPONA.md](EPONA.md).
 - Everyone who sent fixes: SkippySteve (Linux and the AppImage, and many more), klimovich008, d3zessete, chrispository, vzeol,
   monsterlag, leonidasmark, Segmentree, Zorkats, ShyVortex, hiKareeem, gab9281 and i900gaming, among others.
 
+**Added by Epona.** The guided menu, the setup checks, the download list, the logging and the documents are by the Epona maintainers,
+written with an AI coding assistant (Claude, by Anthropic); see [TRANSPARENCY.md](TRANSPARENCY.md). The tools Epona can fetch for
+you, and the people behind them: **FFmpeg** (the FFmpeg developers) and the **FFmpeg-Builds** project (formerly BtbN) for the prebuilt
+shared build; the **Khronos Group** (Vulkan-Headers and SPIRV-Headers); **AMD GPUOpen** (the Vulkan Memory Allocator); **Sam
+Lantinga and the SDL contributors** (SDL2); **Martin Storsj&ouml;** ([llvm-mingw](https://github.com/mstorsjo/llvm-mingw)) with the **LLVM**
+and **mingw-w64** projects; and the maintainers of **lz4, numpy, capstone, unicorn and zstandard** for Python. Their licenses are in
+[THIRD_PARTY.md](THIRD_PARTY.md).
+
 ## License
 
-Hookshot is free software under the [GNU General Public License, version 3 or later](LICENSE) (GPL-3.0-or-later).
-It includes code from Eden, suyu and Orchid, which are under the GPL too. Third-party parts under other licenses that
-work with the GPL (Sirit, the Vulkan Memory Allocator, SDL, Opus, stb, zbic and the a64-kit tools) keep their own notices
-in their folders.
+Hookshot is free software under the [GNU General Public License, version 3 or later](LICENSE) (GPL-3.0-or-later; the original is
+[here](https://github.com/NotRexed/Hookshot/blob/main/LICENSE)). It includes code from Eden, suyu and Orchid, which are under the GPL
+too. Third-party parts under other licenses that work with the GPL (Sirit, the Vulkan Memory Allocator, SDL, Opus, stb, zbic and the
+a64-kit tools) keep their own notices in their folders.
 
-Hookshot is an unofficial fan project, not affiliated with or endorsed by Nintendo. The Legend of Zelda and Ocarina of
-Time are trademarks of Nintendo.
+Hookshot is an unofficial fan project, not affiliated with or endorsed by Nintendo. The Legend of Zelda and Ocarina of Time are
+trademarks of Nintendo.
+
+**Epona keeps all of that.** It is a modified version of Hookshot (upstream commit `ba594da`) and is under the same license, GPL-3.0 or
+later; the original copyright and license notices in every file are untouched, and what Epona changed is listed in
+[EPONA.md](EPONA.md) and in the git history. The full list of third-party components, what each is licensed under, and where its
+license text is, is in **[THIRD_PARTY.md](THIRD_PARTY.md)**. The terms of use (you must own the game) are in [LEGAL.md](LEGAL.md).

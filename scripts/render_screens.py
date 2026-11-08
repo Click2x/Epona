@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 The Epona contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Renders Epona's menu screens to SVG files in docs/screens/, for the readme and for announcements.
 
 Run:  py -I scripts/render_screens.py

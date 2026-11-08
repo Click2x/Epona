@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 The Epona contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
 # Epona: build FFmpeg for the Windows game from source, inside WSL (Ubuntu). Run it yourself:
 #
 #     wsl -d Ubuntu

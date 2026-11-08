@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 The Epona contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Epona: fetch ONLY the four speed-up data files out of the author's HookshotBuilder.zip, without downloading the zip.
 
 Run it yourself:   py -I scripts/epona_fetch_work_data.py [--repo owner/name] [--out folder]

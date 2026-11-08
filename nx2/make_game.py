@@ -957,11 +957,12 @@ def extract_ffmpeg_zip(z, dest):
         if info.is_dir():
             continue
         parts = info.filename.replace("\\", "/").split("/")
-        if len(parts) < 3 or ".." in parts or parts[0] in ("", "."):
+        if len(parts) < 2 or ".." in parts or parts[0] in ("", "."):
             continue
         rel = "/".join(parts[1:])   # (the zip's own top folder dropped)
-        take = (parts[1] == "include" and rel.endswith(".h")) or rel in want_libs or \
-               (parts[1] == "bin" and len(parts) == 3 and FFMPEG_DLL.fullmatch(parts[2]) is not None)
+        # (the zip's LICENSE.txt is kept too: FFmpeg's license travels with its DLLs, see copy_licenses)
+        take = rel == "LICENSE.txt" or (len(parts) >= 3 and ((parts[1] == "include" and rel.endswith(".h")) or rel in want_libs or
+                                                              (parts[1] == "bin" and len(parts) == 3 and FFMPEG_DLL.fullmatch(parts[2]) is not None)))
         if not take:
             continue
         target = os.path.realpath(os.path.join(dest, *rel.split("/")))
@@ -1070,6 +1071,34 @@ def fetch_ffmpeg(zip_path=None):
         return False
     print("installed FFmpeg into %s (%d files; its DLLs will be copied beside the game)" % (FFMPEG_HOME, len(written)), flush=True)
     return ffmpeg_dir() is not None
+
+
+def copy_licenses(out):
+    """Put the licenses of what a game folder is built from in <out>/licenses, so the folder carries its own notices: Epona's own (GPL-3.0),
+    the GPL texts that sit beside suyu's code, Opus, SDL, FFmpeg's (when its zip had one), and THIRD_PARTY.md. This does not make the folder
+    shareable: it holds Nintendo's data (LEGAL.md). Returns the names kept."""
+    ff = ffmpeg_dir()
+    suyu = os.path.join(ROOT, "gpu", "third_party", "suyu")
+    pairs = [(os.path.join(ROOT, "LICENSE"), "LICENSE-GPL-3.0.txt"), (os.path.join(ROOT, "THIRD_PARTY.md"), "THIRD_PARTY.md"),
+             (os.path.join(suyu, "GPL-2.0-or-later.txt"), "GPL-2.0-or-later.txt"), (os.path.join(suyu, "GPL-3.0-or-later.txt"), "GPL-3.0-or-later.txt"),
+             (os.path.join(ROOT, "third_party", "opus", "COPYING"), "Opus-COPYING.txt"),
+             (os.path.join(ROOT, "third_party", "sdl2", "LICENSE.txt"), "SDL2-LICENSE.txt"),
+             (os.path.join(ff, "LICENSE.txt") if ff else "", "FFmpeg-LICENSE.txt")]
+    folder = os.path.join(out, "licenses")
+    os.makedirs(folder, exist_ok=True)
+    kept = []
+    for src, name in pairs:
+        if src and os.path.isfile(src):
+            shutil.copy2(src, os.path.join(folder, name))
+            kept.append(name)
+    with open(os.path.join(folder, "README.txt"), "w", encoding="utf-8", newline="\n") as f:
+        f.write("These are the licenses and notices of what this game folder's program is built from.\n\n"
+                "The program is Epona, a modified version of Hookshot by NotRexed, under the GNU General Public License version 3 or later\n"
+                "(LICENSE-GPL-3.0.txt). THIRD_PARTY.md says what each part of it is licensed under, and where its text is.\n"
+                "Source code: https://github.com/Click2x/Epona  (the original: https://github.com/NotRexed/Hookshot)\n\n"
+                "The game's own data in this folder (romfs, image.bin and the rest) belongs to Nintendo. It is for your own use on your own PC\n"
+                "and must not be shared. Epona is an unofficial fan project, not affiliated with or endorsed by Nintendo.\n")
+    return kept
 
 
 def ffmpeg_dir():
@@ -1414,6 +1443,7 @@ def main():
             shutil.copy2(os.path.join(built, name), os.path.join(out, name))
     for dll in ffmpeg_dlls(ffmpeg_dir()):   # (a shared FFmpeg: its DLLs beside hookshot.exe, or the game does not start)
         shutil.copy2(dll, os.path.join(out, os.path.basename(dll)))
+    copy_licenses(out)
     shutil.copy2(os.path.join(work, "sa", "image", "image.bin"), os.path.join(out, "image.bin"))
     # every shader of the game, for its first start to translate (gpu/vk/vk_shader.cpp seed_open). Without it the game still runs, compiling them
     # as it meets them: not worth stopping a finished build for

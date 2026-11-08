@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 The Epona contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Epona: tests for the two "fix it before going on" offers in nx2/make_game.py, with no registry change, no network and no real
 folders: PATH merging, and taking only the four named data files out of a zip into a temporary folder.
 Run:  py -I tests/test_epona_prompts.py"""
@@ -101,7 +103,8 @@ class FfmpegZip(unittest.TestCase):
             got = sorted(r for r, _ in written)
             self.assertEqual(got, sorted(["include/libavcodec/avcodec.h", "include/libswscale/swscale.h", "include/libavutil/avutil.h",
                                           "lib/avcodec.lib", "lib/swscale.lib", "lib/swresample.lib", "lib/avutil.lib",
-                                          "bin/avcodec-62.dll", "bin/avutil-60.dll", "bin/swscale-9.dll", "bin/swresample-6.dll"]))
+                                          "bin/avcodec-62.dll", "bin/avutil-60.dll", "bin/swscale-9.dll", "bin/swresample-6.dll",
+                                          "LICENSE.txt"]))   # (the zip's license file is kept; the other junk is not)
             on_disk = sorted(os.path.relpath(os.path.join(d, f), dest).replace("\\", "/") for d, _, fs in os.walk(dest) for f in fs)
             self.assertEqual(on_disk, got)
             self.assertFalse(os.path.exists(os.path.join(tmp, "escape.txt")))
@@ -251,6 +254,18 @@ class GuidedMenuHelpers(unittest.TestCase):
             self.assertEqual(live.error, "build.py stopped: nn_video.c")
         finally:
             live.close()
+
+
+class Licenses(unittest.TestCase):
+    def test_a_game_folder_gets_its_licenses_and_the_notice(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            kept = m.copy_licenses(tmp)
+            for name in ("LICENSE-GPL-3.0.txt", "THIRD_PARTY.md", "Opus-COPYING.txt", "SDL2-LICENSE.txt"):
+                self.assertIn(name, kept)
+                self.assertTrue(os.path.isfile(os.path.join(tmp, "licenses", name)), name)
+            readme = open(os.path.join(tmp, "licenses", "README.txt"), encoding="utf-8").read()
+            self.assertIn("must not be shared", readme)
+            self.assertIn("NotRexed/Hookshot", readme)
 
 
 class PrebuiltFfmpegLink(unittest.TestCase):
