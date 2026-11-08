@@ -3,7 +3,8 @@
 An honest walk through the first run, with what it costs and what can go wrong. Times are from one test PC (20 threads, 64 GB of memory,
 an RTX 3090, an SSD) and are meant as a rough guide, not a promise.
 
-> **Status:** nobody has yet finished a complete build through Epona that ends in a playable game. The first full run is still the test.
+> **Status:** built and played end to end **once**, by the maintainer, on one PC (Windows 11, an RTX 3090, 64 GB). That run drew with the
+> Vulkan back end and went on for about an hour. It has not been tried on other hardware, so expect rough edges.
 > See [`TRANSPARENCY.md`](TRANSPARENCY.md) for exactly what has and has not been run.
 
 ## Before you start
@@ -60,7 +61,8 @@ always safe**: what is finished is kept, and choosing Start again carries on.
 | Compiling | **17 minutes** measured for the translated game and host, plus the Vulkan back end, which has **not been timed** | The long, hot step |
 | Finishing | a few minutes (not timed) | Putting the game folder together |
 
-**Plan on one to two hours the first time.** A second run reuses what was compiled and is much shorter.
+**Plan on one to two hours the first time.** A second run reuses what was compiled and is much shorter: a rebuild with most of the work
+already done took about 9 minutes on the test PC.
 
 ### 5. Done
 

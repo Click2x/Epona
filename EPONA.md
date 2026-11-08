@@ -184,6 +184,12 @@ later ran for 17 minutes with free memory never under 37 GB, so **memory pressur
 also restarted uncleanly three other times in the previous day, before the build. The cause is not identified.
 
 **Other findings:**
+- **The first end-to-end run worked.** Built through the menu on the test PC, then played. The game's own log shows the Vulkan back end
+  loaded on an RTX 3090 (Vulkan 1.4, mesh shaders: yes), **110,847 frames presented** over roughly an hour, and a clean exit when the
+  window was closed. In its last five seconds it averaged 29 fps, with frame times mostly 30 to 40 ms (whether that was the game's own
+  frame cap or a slowdown is not known). A rebuild with most of the work cached took about 9 minutes. The install folder held `hookshot.exe`
+  (448 MB), `hookshot_vk.dll`, the four FFmpeg DLLs, `SDL2.dll`, the game image, the shader list, and the caches and `user` saves that only
+  a played game creates. How it looked and played is the maintainer's report.
 - **The first compile silently built no Vulkan back end, and Epona's own renderer check said everything was fine.** `nx2/build.py`
   looks for the Vulkan headers and FFmpeg in `RX_CPM`, then in `<work>/eg/.cache/cpm`, where `<work>` is the builder's folder under
   `%LOCALAPPDATA%`, not this project's `work\`. Epona's downloads went to the project's `work\`, and its check looked there too, so it
@@ -212,18 +218,17 @@ also restarted uncleanly three other times in the previous day, before the build
 
 ## Limits
 
-- **The prebuilt FFmpeg route is untested.** Never run: the download, the digest check against GitHub, the extraction, the link with
-  the import libraries (this build's `-static` mingw link line has not been seen to accept them), and the game starting with the four
-  DLLs beside it. I expected a BtbN shared zip to hold `bin/`, `include/` and `lib/*.lib` import libraries, but its page did not say so
-  and the zip has not been opened. `tests/test_epona_prompts.py` covers the extraction from a made-up zip, and has not been run either.
-  The digest GitHub lists is replaced daily with the file, so a match proves the download is intact, not that the project is safe.
-- **The guided menu has been drawn, not driven.** `--ui-preview` renders its screens once with real data from the test PC, and a script
-  checked that every row of every panel is exactly the same width, with colour on and off, in Unicode and plain characters, at 60 and 100
-  columns. What nobody has done is press keys through it: the arrow-key reading (`msvcrt`), the in-place redraw, the colours and the
-  progress hearts have not been seen working, and the whole Start flow has not been typed through, so expect rough edges. The menu in the
-  author's first screenshot (the old text list) did show a width bug, since fixed. The pure helpers have tests in
-  `tests/test_epona_prompts.py`, not yet run. It needs a terminal that accepts colour codes (Windows Terminal, VS Code, PowerShell 7);
-  otherwise it falls back to a plain numbered prompt.
+- **The prebuilt FFmpeg route has worked once.** On the maintainer's end-to-end run the download, the digest check, the extraction, the
+  link with the import libraries and the game starting with the four DLLs beside it all worked (`avcodec`, `avutil`, `swscale` and
+  `swresample` are in the install folder). One run on one PC is all that is known. `tests/test_epona_prompts.py` covers the extraction from
+  a made-up zip and has not been run. The digest GitHub lists is replaced daily with the file, so a match proves the download is intact,
+  not that the project is safe.
+- **The guided menu has been driven once, by the maintainer, in Windows Terminal.** Screenshots from that use showed the arrow keys, the
+  colours and the heart meter working, and they exposed three layout bugs (a header wider than the terminal, plates running together,
+  clipped file names), all since fixed. A script also checked that every panel row is the same width, with colour on and off, in Unicode and
+  plain characters, at 60 to 100 columns. Not seen: the first-run legal notice (added afterwards), other terminals (the old console, PowerShell
+  7, VS Code's), and the whole flow on a second PC. The pure helpers have tests in `tests/test_epona_prompts.py`, not yet run. It needs a
+  terminal that accepts colour codes; otherwise it falls back to a plain numbered prompt.
 - **The FFmpeg script is untested.** It has been syntax-checked (`bash -n`) and never run. The configure options, the release-key
   fingerprint and whether the GNU-ABI static libraries link cleanly with this build's link line are all unproven. The first run may need
   changes, and the FFmpeg 9.0.2 headers may not match what `nn_video.c` expects.
@@ -232,9 +237,9 @@ also restarted uncleanly three other times in the previous day, before the build
 - **Tested here:** Python syntax, the graphics-card name patterns on sample names, the AV1 and graphics-card queries on one PC
   (an RTX 3090 with AVX2 and the extension installed), the tool listing, and a syntax-only compile of `host/hos_update.c`.
   `tests/test_epona_prompts.py` covers the PATH merge and the four-file zip extraction in a temporary folder; it was written but
-  **not yet run**, and the registry write itself has never been run.
-- **Not tested:** the C# changes were not compiled (the project targets .NET 8 for Windows). The download steps and a full
-  build through Epona's checks have not been run end to end.
+  **not yet run**. The PATH write itself ran once on the test PC (its backup file was made), and undoing it has not been tried.
+- **Not tested:** the C# changes were not compiled (the project targets .NET 8 for Windows), so the builder app's logging and updater are
+  unproven. The full build through Epona has been run end to end **once**, on one PC; no other hardware, no AMD or Intel card, no Linux.
 - **The updater's SHA-256** proves a download matches what GitHub lists, so it catches a bad or truncated download. It does not
   prove the repository's owner is trustworthy: they publish both the file and its digest.
 - **The graphics-card check is a guess from the card's name.** It only warns.

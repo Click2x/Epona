@@ -46,11 +46,17 @@ confident-looking page imply it.
 
 Be honest with yourself about this before you trust it:
 
-- **Tested:** that the code compiles and that the screens draw (a script checks that every panel row is the same width); the PC checks on
-  one PC (an RTX 3090 with AVX2); the translation step; a compile of the translated game code and host that took about 17 minutes there.
-- **Not tested:** a **complete build that ends in a game you can play**, started through Epona. At the time of writing, that first full run
-  has not finished. The Vulkan back end had been silently skipped in an earlier compile (a bug in Epona's setup, since fixed) and has not
-  been compiled yet. Arrow-key handling, the C# changes, and the FFmpeg-from-source script have never been run on a real machine.
+- **Tested end to end, once:** the maintainer built the game through Epona's menu and played it on one PC (Windows 11, an RTX 3090,
+  64 GB of memory). The game's own log from that run shows it drawing with the **Vulkan back end** (Vulkan 1.4, mesh shaders: yes) and
+  presenting 110,847 frames over roughly an hour before the window was closed. That one run exercised the compiler download, the Vulkan
+  headers, the prebuilt FFmpeg and its four DLLs, the controller DLL, the PATH question and the menu's arrow keys. Its last five seconds
+  averaged 29 fps with frame times mostly 30 to 40 ms; whether that was the game's own frame cap or a slowdown is not known. How the game
+  looked and played is the maintainer's report, not something this page measures.
+- **Tested besides:** that the screens draw (a script checks that every panel row is the same width); the PC checks; the translation step
+  (165 s); a compile of the translated game code and host that took about 17 minutes.
+- **Not tested:** any other PC, graphics card or processor (AMD and Intel above all); the first-run legal notice (added after that run);
+  the FFmpeg-from-source script; the builder app's C# changes and the updater (never compiled or run); Linux; and most of the unit tests in
+  `tests/`, which were written but not run.
 - The unit tests in `tests/` were written but, in several cases, **not yet run**. [`EPONA.md`](EPONA.md#limits) lists each gap.
 - One test PC restarted unexpectedly during testing, and several times the day before the build ran. The cause was not found, and the
   build's memory use was measured and ruled out. It is mentioned so nobody is surprised.
