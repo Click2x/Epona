@@ -39,7 +39,7 @@ def stars(n=150):
     return '<svg class="abs" width="1280" height="720" viewBox="0 0 1280 720">%s</svg>' % dots
 
 
-def page(link):
+def page(link, shots=None):
     home_w, home_h = svg_size("01-home.svg")
     conf_w, conf_h = svg_size("04-confirm.svg")
     prog_w, prog_h = svg_size("05-progress.svg")
@@ -74,18 +74,18 @@ ul.bul b{color:#fff}
 .med{left:44px;top:530px;display:flex;gap:11px}
 .med i{display:block;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff9,var(--c) 45%,#0006 100%);
 box-shadow:0 0 12px var(--c),inset 0 0 0 2px rgba(255,255,255,.35)}
-.link{position:absolute;left:42px;top:590px;width:auto;max-width:420px;padding:10px 20px 12px;border-radius:14px;background:rgba(10,20,70,.75);border:2px solid #6fb2ff;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.link{position:absolute;left:42px;top:572px;width:auto;max-width:420px;padding:10px 20px 12px;border-radius:14px;background:rgba(10,20,70,.75);border:2px solid #6fb2ff;box-shadow:0 8px 24px rgba(0,0,0,.4)}
 .link small{display:block;font-size:12px;letter-spacing:.3em;color:#8fc4ff;font-weight:700}
 .link b{font-family:"Cascadia Mono",Consolas,monospace;font-size:25px;color:#fff;letter-spacing:.01em}
 .link.draft{border-style:dashed;border-color:#ffb347}.link.draft b{color:#ffd28a;font-family:"Segoe UI",sans-serif;font-style:italic}
 .shot{border-radius:12px;box-shadow:0 20px 44px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.1)}
 .cap{font-size:12px;color:#8fa2d8;letter-spacing:.04em}
-.strip{left:480px;top:532px;width:770px;height:112px;border-radius:16px;background:rgba(8,16,62,.78);border:1px solid rgba(140,180,255,.35);
+.strip{left:480px;top:520px;width:770px;height:112px;border-radius:16px;background:rgba(8,16,62,.78);border:1px solid rgba(140,180,255,.35);
 display:grid;grid-template-columns:1.25fr 1fr 1.35fr;gap:0;box-shadow:0 12px 30px rgba(0,0,0,.45)}
 .strip>div{padding:13px 18px;border-right:1px solid rgba(140,180,255,.22)}.strip>div:last-child{border-right:0}
 .strip h3{margin:0 0 5px;font-size:12px;letter-spacing:.24em;color:#8fc4ff;font-weight:700}
 .strip p{margin:0;font-size:15.5px;line-height:1.33;color:#e6edff}.strip p b{color:#fff}.strip em{font-style:normal;color:#ffe08a}
-.foot{left:40px;right:40px;top:672px;font-size:13px;line-height:1.35;color:#9fb1e6}
+.foot{left:40px;right:40px;top:650px;font-size:14px;line-height:1.4;color:#9fb1e6}
 .foot b{color:#ffd9a0}
 </style>
 <div class="glow"></div>
@@ -103,18 +103,30 @@ display:grid;grid-template-columns:1.25fr 1fr 1.35fr;gap:0;box-shadow:0 12px 30p
 <div class="abs meter">@@hearts@@</div>
 <div class="abs med">@@medallions@@</div>
 @@linkbox@@
-<img class="abs shot" src="../screens/01-home.svg" style="left:480px;top:70px;height:@@hh@@px;width:@@hw@@px">
-<img class="abs shot" src="../screens/04-confirm.svg" style="left:950px;top:70px;width:@@cw@@px;height:@@ch@@px">
-<img class="abs shot" src="../screens/05-progress.svg" style="left:950px;top:@@py@@px;width:@@cw@@px;height:@@ph@@px">
-<div class="abs cap" style="left:480px;top:494px">Screens drawn by the tool from sample data, not photos of a terminal</div>
+@@screens@@
 <div class="abs strip">
 <div><h3>THE GAME</h3><p><b>The Legend of Zelda: Ocarina of Time</b><br>Nintendo Switch 2 version. <em>You supply your own copy.</em></p></div>
 <div><h3>SUPPORTED BUILD</h3><p>e0f3ccfa<br>program 0400486024DEC000<br>update v131072</p></div>
 <div><h3>YOU NEED</h3><p>Windows 10/11 64-bit &middot; <b>AVX2</b> CPU &middot; 16 GB RAM &middot; about 60 GB free &middot; a Vulkan 1.3 GPU with <b>mesh shaders</b> (RTX 20 / GTX 16+, RX 6000+, Arc)</p></div>
 </div>
 <div class="abs foot"><b>Bring your own legally owned copy.</b> No game files are included or downloaded. Unofficial fan project, not affiliated with or endorsed by Nintendo.
-Built on Hookshot by NotRexed (GPL-3.0); credits and licenses are carried forward. Built and played twice on one PC (an RTX 3090) and it worked well there: expect rough edges elsewhere.</div>
+Built on Hookshot by NotRexed (GPL-3.0). Played on one PC (an RTX 3090) and it worked well there: expect rough edges elsewhere.</div>
 """
+    if shots:   # (two game screenshots on top, the tool's own screens below; the game's pictures are linked, never copied into the repo)
+        cut = ".shot{object-fit:cover;object-position:left top}"   # (keeps the left 77%: no corner overlays or watermarks on the right)
+        screens = ('<style>%s</style>' % cut +
+                   ''.join('<img class="abs shot" src="%s" style="left:%dpx;top:70px;width:372px;height:272px">' % (Path(f).resolve().as_uri(), x)
+                           for f, x in zip(shots, (480, 868))) +
+                   '<div class="abs cap" style="left:480px;top:346px">Running on an RTX 3090 PC: the title screen and Kokiri Forest, from a build made with Epona</div>' +
+                   '<img class="abs shot" src="../screens/01-home.svg" style="left:480px;top:372px;height:134px;width:%dpx">' % int(home_w * 134 / home_h) +
+                   '<img class="abs shot" src="../screens/04-confirm.svg" style="left:%dpx;top:372px;height:134px;width:%dpx">' % (480 + int(home_w * 134 / home_h) + 14, int(conf_w * 134 / conf_h)) +
+                   '<img class="abs shot" src="../screens/05-progress.svg" style="left:%dpx;top:372px;height:134px;width:%dpx">' % (480 + int(home_w * 134 / home_h) + int(conf_w * 134 / conf_h) + 28, int(prog_w * 134 / prog_h)))
+    else:
+        screens = ('<img class="abs shot" src="../screens/01-home.svg" style="left:480px;top:70px;height:@@hh@@px;width:@@hw@@px">'
+                   '<img class="abs shot" src="../screens/04-confirm.svg" style="left:950px;top:70px;width:@@cw@@px;height:@@ch@@px">'
+                   '<img class="abs shot" src="../screens/05-progress.svg" style="left:950px;top:@@py@@px;width:@@cw@@px;height:@@ph@@px">'
+                   '<div class="abs cap" style="left:480px;top:494px">Screens drawn by the tool from sample data, not photos of a terminal</div>')
+    template = template.replace("@@screens@@", screens)
     values = dict(stars=stars(), hearts=hearts, medallions=medallions, linkbox=linkbox, hh=hh, hw=int(home_w * hh / home_h), cw=cw_,
                   ch=int(conf_h * cw_ / conf_w), py=70 + int(conf_h * cw_ / conf_w) + 14, ph=int(prog_h * cw_ / prog_w))
     for key, value in values.items():
@@ -125,14 +137,16 @@ Built on Hookshot by NotRexed (GPL-3.0); credits and licenses are carried forwar
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--link", help="the address to show, for example github.com/your-name/Epona (without it a dashed placeholder is drawn)")
+    ap.add_argument("--shots", nargs=2, metavar="PNG", help="two screenshots of the running game for a Discord version (it shows Nintendo's artwork: "
+                    "written as ...-GAME.png, which git ignores, and never added to the repository)")
     ap.add_argument("--out", help="where to write the PNG (default: docs/img/epona-announcement.png, or ...-DRAFT.png without --link)")
     a = ap.parse_args()
-    a.out = a.out or str(OUT / ("epona-announcement.png" if a.link else "epona-announcement-DRAFT.png"))
+    a.out = a.out or str(OUT / ("epona-announcement-GAME.png" if a.shots else "epona-announcement.png" if a.link else "epona-announcement-DRAFT.png"))
     if not SCREENS.is_dir() or not (SCREENS / "01-home.svg").exists():
         sys.exit("docs/screens is missing: run  py -I scripts/render_screens.py  first")
     OUT.mkdir(parents=True, exist_ok=True)
     html_path = OUT / "announcement.html"
-    html_path.write_text(page(a.link), encoding="utf-8", newline="\n")
+    html_path.write_text(page(a.link, a.shots), encoding="utf-8", newline="\n")
     edge = next((e for e in EDGES if os.path.isfile(e)), None)
     if not edge:
         sys.exit("Microsoft Edge was not found; open %s in any browser and screenshot it at 1280x720" % html_path)

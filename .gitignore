@@ -36,6 +36,7 @@ work_incoming/
 
 # ---- generated announcement drafts (only a final one, made with --link, is meant to be committed) ----
 docs/img/*DRAFT*
+docs/img/*-GAME.png
 docs/img/announcement.html
 
 # ---- local agent coordination notes ----
