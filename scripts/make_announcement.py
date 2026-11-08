@@ -90,14 +90,15 @@ display:grid;grid-template-columns:1.25fr 1fr 1.35fr;gap:0;box-shadow:0 12px 30p
 </style>
 <div class="glow"></div>
 @@stars@@
-<div class="abs pill">INTRODUCING</div>
+<div class="abs pill">STABLE RELEASE 1.0.0</div>
 <h1>EPONA</h1>
 <div class="abs tag">Ocarina of Time on your PC, <b>built from your own copy</b></div>
 <ul class="bul">
 <li><b>A guided menu</b> for the Hookshot recompilation: arrow keys, no command line</li>
-<li><b>Checks your PC first</b>, before an hour-long build</li>
+<li><b>Checks your PC first</b>, before the build</li>
 <li><b>Asks before every download</b>, with its source, size and check shown</li>
 <li><b>Safe to stop</b>: Ctrl+C keeps your progress</li>
+<li><b>Hookshot's latest updates</b> merged in</li>
 </ul>
 <div class="abs meter">@@hearts@@</div>
 <div class="abs med">@@medallions@@</div>
@@ -112,7 +113,7 @@ display:grid;grid-template-columns:1.25fr 1fr 1.35fr;gap:0;box-shadow:0 12px 30p
 <div><h3>YOU NEED</h3><p>Windows 10/11 64-bit &middot; <b>AVX2</b> CPU &middot; 16 GB RAM &middot; about 60 GB free &middot; a Vulkan 1.3 GPU with <b>mesh shaders</b> (RTX 20 / GTX 16+, RX 6000+, Arc)</p></div>
 </div>
 <div class="abs foot"><b>Bring your own legally owned copy.</b> No game files are included or downloaded. Unofficial fan project, not affiliated with or endorsed by Nintendo.
-Built on Hookshot by NotRexed (GPL-3.0). Built and played on one PC (an RTX 3090) and it played well there: expect rough edges elsewhere.</div>
+Built on Hookshot by NotRexed (GPL-3.0); credits and licenses are carried forward. Built and played twice on one PC (an RTX 3090) and it worked well there: expect rough edges elsewhere.</div>
 """
     values = dict(stars=stars(), hearts=hearts, medallions=medallions, linkbox=linkbox, hh=hh, hw=int(home_w * hh / home_h), cw=cw_,
                   ch=int(conf_h * cw_ / conf_w), py=70 + int(conf_h * cw_ / conf_w) + 14, ph=int(prog_h * cw_ / prog_w))
