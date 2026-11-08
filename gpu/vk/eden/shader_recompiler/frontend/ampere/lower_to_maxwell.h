@@ -2097,11 +2097,17 @@ inline LoweredProgram LowerToMaxwellWith(std::span<const Instruction> code, u32 
             }
             break;
         }
-        case 0x91a: // DEPBAR.LE SB5, 1: scoreboard wait, represented by IR data dependencies.
-            if (insn.words[0] != 0x791a || (insn.words[1] & ~0xfc0U) != 0xd000 || insn.words[2]) {
+        case 0x91a: { // DEPBAR.LE SB5, 1: scoreboard wait, represented by IR data dependencies.
+            // (Epona: also the full waits OoT's programs end loads with, DEPBAR.LE SB0, 0 with the other scoreboards listed
+            // (words 0000791a 0000801e / 0000800e): bit 47 is "less or equal", bits 44-46 the scoreboard, 38-43 the count, 32-37 the
+            // list. Any wait on a scoreboard is a no-op here, as the one above: the IR orders a load before its users)
+            const bool wait = insn.words[0] == 0x791a && insn.words[2] == 0 && (insn.words[1] >> 16) == 0 &&
+                              (insn.words[1] & 0x8000U) && ((insn.words[1] >> 12) & 7U) <= 5;
+            if (!wait) {
                 return fail(index, "native dependency barrier mode");
             }
             break;
+        }
         case 0xb69: case 0xf69: case 0x36a: { // TMML (LOD query), 1D/2D/3D/CUBE. Results are 8.8 fixed point, as on Maxwell.
             // 0xf69: the handle in a uniform register (bit 91); 0x36a, TMML.B: the handle in Rb and
             // every coordinate in Ra. Both become Maxwell TMML.B with the handle in Rb.
@@ -3138,7 +3144,10 @@ inline LoweredProgram LowerToMaxwellWith(std::span<const Instruction> code, u32 
             // (hookshot) the link's MOV (the return PC into Rlink) up to sixteen instructions back, those between
             // writing other registers and not branching (OoT's mesh programs set it ten instructions before)
             u32 setup = index;
-            for (u32 back = 1; back <= 16 && back <= index; ++back) {
+            // (Epona: 32, was 16. Two of OoT's mesh programs set the link 18 instructions before the call, so they were rejected
+            // as "call linkage mode". The link's MOV must still hold exactly this call's return address, nothing between may
+            // branch or write the register, so a longer look can only find the right one)
+            for (u32 back = 1; back <= 32 && back <= index; ++back) {
                 const Instruction& prior = code[index - back];
                 if ((prior.words[0] & ~0x00ff0000U) == 0x00007802 && prior.Bits(16, 8) < 250 &&
                     prior.words[1] == (index + 1) * 16 && prior.words[2] == 0xf00) {

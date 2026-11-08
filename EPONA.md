@@ -201,7 +201,13 @@ also restarted uncleanly three other times in the previous day, before the build
   31 distinct stages in all, and for each the log says why: the recompiler's lowering of the Switch 2 GPU code stops at an instruction it
   does not handle (scratch registers, special-register reads, call/return linkage, dependency-barrier modes, uniform predication).
   That is a known limit of the shader code, not something Epona or the merge changed. Whether the game ever draws with one of them,
-  and whether it shows, is not known; no draw was reported skipped in the earlier hour-long run. The finished folder's `licenses` folder
+  and whether it shows, is not known; no draw was reported skipped in the earlier hour-long run.
+  Two small changes to the lowering (`gpu/vk/eden/.../lower_to_maxwell.h`: a call's return-address setup may now be up to 32
+  instructions back, was 16; any scoreboard wait is accepted, not only one form) made six of those stages translate: **35 programs
+  and 25 stages still fail** (18 need the high registers the lowering uses as scratch, 4 are special-register reads into them, 2 are a
+  guarded ULEA that also writes a predicate, 1 restores its return address from local memory). The six that now translate were
+  checked only by the prepare pass accepting them and a short play session with no visual error; whether the game draws with them,
+  and draws them right, is not known. The finished folder's `licenses` folder
   has no FFmpeg text, because that FFmpeg was fetched before the zip's `LICENSE.txt` was being kept. The maintainer says it "worked
   flawlessly" (their account).
 - **The first compile silently built no Vulkan back end, and Epona's own renderer check said everything was fine.** `nx2/build.py`
