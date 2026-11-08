@@ -193,6 +193,13 @@ also restarted uncleanly three other times in the previous day, before the build
   frame cap or a slowdown is not known). A rebuild with most of the work cached took about 9 minutes. The install folder held `hookshot.exe`
   (448 MB), `hookshot_vk.dll`, the four FFmpeg DLLs, `SDL2.dll`, the game image, the shader list, and the caches and `user` saves that only
   a played game creates. The maintainer reports that it **played well**: a personal account of one session on one PC, not a systematic test.
+- **The build with upstream's 206 newer commits merged also worked, once.** Built through the menu on the same PC, the game folder's log
+  header reads `hookshot c85455c`; the build log shows 419 files, 0 failed, both programs linked (the compile took 56 s, mostly cached).
+  The game drew with the Vulkan back end on the RTX 3090 again, the AV1 movie decoder came up, 47,640 frames were presented and the exit
+  was clean (28.8 fps in the last stretch, 60 in the menus; cap or slowdown unknown). 43 of 14,179 prepared shader programs are marked
+  "failed" in the log; there is no earlier log to compare, so whether that is new is not known. The finished folder's `licenses` folder
+  has no FFmpeg text, because that FFmpeg was fetched before the zip's `LICENSE.txt` was being kept. The maintainer says it "worked
+  flawlessly" (their account).
 - **The first compile silently built no Vulkan back end, and Epona's own renderer check said everything was fine.** `nx2/build.py`
   looks for the Vulkan headers and FFmpeg in `RX_CPM`, then in `<work>/eg/.cache/cpm`, where `<work>` is the builder's folder under
   `%LOCALAPPDATA%`, not this project's `work\`. Epona's downloads went to the project's `work\`, and its check looked there too, so it

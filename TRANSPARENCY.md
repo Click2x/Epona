@@ -53,6 +53,12 @@ Be honest with yourself about this before you trust it:
   averaged 29 fps with frame times mostly 30 to 40 ms; whether that was the game's own frame cap or a slowdown is not known. How the game
   looked and played is the maintainer's report: they say it **played well**. That is a personal account of one session on one PC, not a
   measurement or a systematic test.
+- **Rebuilt with upstream's newer commits, once:** after Epona merged Hookshot's later 206 commits (merge `c85455c`), the maintainer built
+  again on the same PC. The build log shows 419 files compiled with 0 failed and both programs linked; the game's log header reads
+  `hookshot c85455c`, the Vulkan back end on the RTX 3090 again, the AV1 movie decoder ready, and 47,640 frames presented before a clean
+  "window closed, exiting" (28.8 fps over the last stretch; 60 fps in the menus). That run prepared 14,179 shader programs, 43 of which
+  the log marks "failed"; whether that is new is not known. The maintainer says it "worked flawlessly", a personal account. Still one
+  PC, one run.
 - **Tested besides:** that the screens draw (a script checks that every panel row is the same width); the PC checks; the translation step
   (165 s); a compile of the translated game code and host that took about 17 minutes.
 - **Not tested:** any other PC, graphics card or processor (AMD and Intel above all); the first-run legal notice (added after that run);
