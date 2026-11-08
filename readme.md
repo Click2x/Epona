@@ -37,6 +37,10 @@ Built and played end to end once by the maintainer, on one PC (Windows 11, an RT
 Hookshot is a static recompilation. The game's code is translated to C and compiled into a Windows program, the
 console's system software is reimplemented, and the Switch 2 graphics are rebuilt on Vulkan. All of this happens
 **on your PC, from your own copy of the game**.
+<br>
+
+Discord: https://discord.gg/DVQQJphbBf
+<br>
 
 > [!IMPORTANT]
 > This repository **does not contain the game, keys or an executable**, and it does not explain how to get them. You
@@ -95,8 +99,9 @@ A build takes about 40 minutes, and you can use your PC in the meantime.
    make it executable (`chmod +x`) and start it. It is Hookshot Builder with everything it needs inside: the compiler,
    the libraries and the Vulkan renderer. Nothing else has to be installed.
 2. Choose your `.nup` (or your `romfs` and `exefs` folders), a language and a folder for the game, and build.
-3. When it finishes, press Play. The game is also added to your applications menu, and starting the AppImage again
-   offers Play. The game itself is `hookshot` in the folder you chose: it runs without the AppImage.
+3. When it finishes, press Play. The game is also added to your applications menu. The same AppImage starts that
+   game without opening the builder: `./Hookshot-<version>-x86_64.AppImage --play`, or `--play ~/Games/Hookshot`
+   for a different folder. The game itself is `hookshot` in the folder you chose: it runs without the AppImage.
 
 From the command line: `./Hookshot-<version>-x86_64.AppImage --cli --nup ~/your-game.nup --out ~/Games/Hookshot`
 (the same options as `make_game.py`).
@@ -108,6 +113,11 @@ beside the game from an earlier build is moved there once. `HOOKSHOT_JOBS` sets 
 Switches to test (`RX_VK_NOOPT=1` and the others) go in `hookshot_env.txt` beside the game, one `NAME=VALUE` a line,
 as on Windows.
 
+`RX_VK_MOVIE_UPSCALE=linear` replaces the movie's neural upscale with the existing linear path. The default `auto` behavior
+keeps the networks and falls back only when movie GPU time exceeds the existing 40 ms trigger. This switch does not change
+the gameplay upscaler and can make movie images look softer. It works on Windows and Linux; `RX_VK_NETWORK_KEEP=all` takes
+precedence and keeps the movie networks enabled.
+
 Building it yourself without the AppImage: `clang` and `lld` (LLVM 23 or newer reads the play profile; an older one
 builds without it), Python 3 with `lz4`, `numpy`, `capstone`, `unicorn` and `zstandard`, FFmpeg's development files
 (with dav1d, for the movies) and SDL2. Then `python -I nx2/make_game.py ...` as above, with `RX_CPM` pointing at a folder
@@ -117,7 +127,7 @@ with Vulkan-Headers, SPIRV-Headers and VulkanMemoryAllocator in CPM's layout (`s
 ### Updating to a newer release
 
 A new release is not a patch to your game folder: the game is built again from your copy, with the new code. Your
-saves and settings are kept.
+saves and settings are kept. What changed in each release is in [changelog.txt](changelog.txt).
 
 1. Close the game.
 2. To be safe, copy your saves somewhere first: the `user` folder beside `hookshot.exe` on Windows, or
@@ -199,11 +209,13 @@ Never send game files.
 
 ## In-game menu
 
-Press <kbd>Insert</kbd> in game. Everything is off by default, and your choices are saved in `hookshot_options.ini`
-beside the game.
+Press <kbd>Insert</kbd> in game, or on a controller the Home button (or Select and Start together). Everything is off
+by default, and your choices are saved in `hookshot_options.ini` beside the game. On a controller the D-pad chooses
+and changes, the bottom face button changes too, and the right one closes the menu.
 
 | Option | Choices |
 |---|---|
+| Quality preset | Custom, Minimum (4GB), Low (6GB), Balanced (8GB), High (12GB), Ultra (16GB+) |
 | Frame generation | Off, 2x, 3x, 4x |
 | Frame pacing | Off, On |
 | Resolution | Auto (the game's own dynamic resolution), 100%, 75%, 67%, 50% |
@@ -220,6 +232,34 @@ With Game speed on Per frame, the game runs slower whenever it is below 60 fps. 
 
 Use a controller, or the keyboard and mouse. On the keyboard, <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> move
 and the arrow keys turn the camera.
+
+To change which gamepad button or key presses a Switch button, open the in-game menu's Controls page. Choose a
+button and a column, press <kbd>Enter</kbd> (or the bottom face button), then the new button or key; <kbd>Delete</kbd>
+clears it, and Reset to defaults puts them all back. A gamepad button taken from another Switch button swaps with it.
+The page saves them in `hookshot_options.ini`, where you can also write them yourself:
+
+```ini
+pad_a=0
+key_a=69,13
+```
+
+`pad_<button>` is a gamepad input by position: 0 bottom face button, 1 right, 2 left, 3 top, 4 Select or Back, 5 Home,
+6 Start, 7 and 8 the stick presses, 9 and 10 the shoulder buttons, 11 to 14 the D-pad (up, down, left, right), 15 and
+16 the triggers, -1 none. `key_<button>` is one or two
+[Windows key codes](https://learn.microsoft.com/windows/win32/inputdev/virtual-key-codes) in decimal (69 is
+<kbd>E</kbd>, 13 <kbd>Enter</kbd>), 0 none. The buttons are `a` `b` `x` `y` `l` `r` `zl` `zr` `plus` `minus` `ls`
+`rs` `left` `up` `right` `down`. A button the file leaves out keeps its default.
+
+## Mods
+
+Put mods in a `mods` folder beside `hookshot.exe` (or point `HOS_MODS` at another folder), in the layout emulators
+use: `mods/<name>/romfs/...` holds files that replace or add to the game's own. Deeper layouts such as
+`mods/contents/<title id>/<name>/romfs` work too. A folder whose name starts with `-` or `_` is off. When two mods
+have the same file, the one whose folder name sorts last wins, so name them `01-...`, `02-...` to set the order.
+
+Only RomFS mods are loaded. `exefs` patches (`.pchtxt`, `.ips`) are left out: Hookshot compiles the game's code ahead
+of time, so patching its instructions would need a rebuild. The log (`hookshot_log.txt` when started from its icon)
+names each mod and the files read from it.
 
 ## How it works
 
@@ -243,14 +283,17 @@ Bigger ways to help:
 - **Fixes in your own fork.** Fork the project, fix what you find and send the change back. Keep game files, keys and
   anything generated from your game out of it.
 
+[CONTRIBUTING.md](CONTRIBUTING.md) has the setup, the test commands, the code conventions and what a good pull request
+looks like.
+
 ## Credits
 
 Hookshot exists thanks to the work of many people. **Epona is a fork of it**: everything below is the original's, and Epona's
 own changes are the ones listed in [EPONA.md](EPONA.md).
 
 - **NotRexed**: Hookshot, BlueShell (Mario Kart World), Skybound (Tears of the Kingdom) and the a64-kit tools.
-- **EvilBoyce** (Discord: evilmfkr, [fork](https://github.com/evilmfkr/Hookshot)): Ocarina of Time's foliage culling, ambient light,
-  water and fog fixes, the freeze after Load, the exposure flashes, and the rendering diagnostics tools.
+- **EvilBoyce** (Discord: evilmfkr, [fork](https://github.com/evilmfkr/Hookshot)): Ocarina of Time's foliage culling, ambient
+  light, water and fog fixes, the freeze after Load, the exposure flashes, and the rendering diagnostics tools.
 - **[Eden](https://git.eden-emu.dev/eden-emu/eden)** and **Eglantine**: the shader recompiler and Switch 2 shader work.
 - **suyu**: the graphics decoders and the AArch64 translator.
 - **[seedds/nxnative](https://github.com/seedds/nxnative)**: reference for how task and mesh shaders work.

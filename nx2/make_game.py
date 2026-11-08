@@ -28,7 +28,7 @@ ROOT = os.path.dirname(HERE)
 PY = [sys.executable, "-I", "-u", "-X", "utf8"]   # (utf8: every step's output in UTF-8 whatever the console's code page: lift.py crashed on a letter, #180)   # (-u: the steps' output as it comes, not in 8 KB blocks minutes apart)
 BUILD_ID = "e0f3ccfa"   # (the version the patches, the hot list and the profile were made from)
 LINUX = os.name != "nt"
-BESIDE = ["hookshot", "hookshot_vk.so", "libSDL2-2.0.so.0"] if LINUX else ["hookshot.exe", "hookshot_vk.dll", "SDL2.dll", "wgpu_native.dll"]
+BESIDE = ["hookshot", "hookshot_vk.so", "libSDL2-2.0.so.0"] if LINUX else ["hookshot.exe", "hookshot_vk.dll", "SDL2.dll", "SDL3.dll", "wgpu_native.dll"]
 LANGUAGES = [("en-US", "English (US)"), ("en-GB", "English (UK)"), ("fr", "French (France)"), ("fr-CA", "French (Canada)"), ("de", "German"),
              ("it", "Italian"), ("es", "Spanish (Spain)"), ("es-419", "Spanish (Latin America)"), ("pt-BR", "Portuguese (Brazil)"), ("nl", "Dutch"),
              ("pl", "Polish"), ("ru", "Russian"), ("ja", "Japanese"), ("ko", "Korean"), ("zh-Hans", "Chinese (Simplified)"),
@@ -286,6 +286,10 @@ def check_linux_compiler():
              "libc6-dev on Debian and Ubuntu, glibc-devel on Fedora)" % (errors[0] if errors else "no message"))
 
 
+# (upstream's default_jobs() for issue 418 is not used here: Epona's suggested_jobs()/choose_jobs() below pick the number from the free
+# memory and ask in a terminal; HOOKSHOT_JOBS and --jobs still win)
+
+
 def bundled_mingw():
     """(as TotK Recomp's installer) llvm-mingw in the tools folder: its clang, headers and libraries build the game, and nothing of
     Visual Studio or the Windows SDK is needed. HOOKSHOT_MINGW set already wins; HOOKSHOT_MSVC=1: the Visual Studio route"""
@@ -295,6 +299,15 @@ def bundled_mingw():
         here = os.path.join(ROOT, "llvm-mingw")
         if os.path.isfile(os.path.join(here, "bin", "clang.exe")):
             os.environ["HOOKSHOT_MINGW"] = here
+        elif os.path.isdir(here):
+            # (the folder is there and its compiler is not: an antivirus took it (false positives on unsigned tools), or the
+            # zip was not unpacked whole. It went on to the Visual Studio route and said "The Windows SDK was not found")
+            missing = [n for n in ("clang.exe", "clang++.exe", "ld.lld.exe")
+                       if not os.path.isfile(os.path.join(here, "bin", n))]
+            fail("Files of the builder's own compiler are missing (%s in %s). Your antivirus most likely removed them "
+                 "(a false alarm on unsigned programs): restore them from its quarantine or allow the Hookshot Builder folder, "
+                 "then unzip HookshotBuilder.zip again and build. Visual Studio is not needed."
+                 % (", ".join(missing) or "bin", os.path.join(here, "bin")))
     return os.environ.get("HOOKSHOT_MINGW", "")
 
 
@@ -486,6 +499,28 @@ def drop_stale_objects(work):
             shutil.rmtree(sub, ignore_errors=True)
     with open(note, "w") as f:
         f.write(stamp + chr(10))
+
+
+def seed_pipelines(out):
+    """The pipelines recorded on the development PC (hookshot_pipelines_seed.bin in the tools: program keys and draw states, no game
+    code), as the game folder's list, so its first start builds them before the title, as TotK Recomp's shipped shader list does,
+    instead of compiling each when it is first drawn (the stutter of a first visit). Each release ships the list its own build
+    made: the file's first 8 bytes are that build's stamp, and a list the folder has from the same build is kept (it grows as
+    the player plays)"""
+    seed = os.path.join(ROOT, "hookshot_pipelines_seed.bin")
+    dst = os.path.join(out, "hookshot_pipelines.bin")
+    if not os.path.isfile(seed):
+        return
+    with open(seed, "rb") as f:
+        stamp = f.read(8)
+    try:
+        with open(dst, "rb") as f:
+            if f.read(8) == stamp:
+                return
+    except OSError:
+        pass
+    shutil.copyfile(seed, dst)
+    print("the shipped pipeline list: %d KB, built before the first title" % (os.path.getsize(seed) >> 10), flush=True)
 
 
 def folder_language(out):
@@ -1449,6 +1484,7 @@ def main():
     # as it meets them: not worth stopping a finished build for
     if subprocess.call(shader_census_cmd(romfs, os.path.join(out, "hookshot_shaders.bin")), stdout=sys.stderr):
         print("the shader list was not made: the game will compile its shaders as it plays", flush=True)
+    seed_pipelines(out)
     language = os.path.join(out, "language.txt")   # (the same text as host/nn_applet.c writes)
     with open(language, "w", encoding="utf-8", newline="\n") as f:
         f.write("# The game's language. Change the line below to one of the codes listed here, save, and start the game again.\n\n%s\n\n" % a.language)

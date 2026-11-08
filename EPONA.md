@@ -12,7 +12,8 @@ No game files are in this repository. You supply your own dump. Epona is not aff
 If the original author wants any of these changes, they are welcome to take them.
 
 **Modified from Hookshot** (upstream commit `ba594da`, by NotRexed) by the Epona maintainers in November 2026; the git history and
-`git diff ba594da` show every change, as the GPL asks. **See also:** [`LEGAL.md`](LEGAL.md) (you must legally own the game),
+`git diff ba594da` show every change, as the GPL asks. Upstream's later commits (to `4cfa08f`, 206 of them) were merged in afterwards;
+`git log upstream/main` shows them, and they are NOT Epona's changes. **See also:** [`LEGAL.md`](LEGAL.md) (you must legally own the game),
 [`TRANSPARENCY.md`](TRANSPARENCY.md) (what was checked and what was not), [`THIRD_PARTY.md`](THIRD_PARTY.md) (every third-party component and
 its license) and [`docs/WHAT_TO_EXPECT.md`](docs/WHAT_TO_EXPECT.md).
 
