@@ -8,8 +8,10 @@ area, done now while you are away, spares you the hitch later. This tool does th
 
 For each area of the game it:
   1. writes that area's name and one of its own start positions (both read from your game's data, Banc/*_Dynamic.bcett.byml.zs, the
-     StartPos actors) into ONE save slot, the one you name with --slot (default 4, the fifth). It never touches the other slots;
-  2. starts the game with scripted button presses (HOS_INPUT_SCRIPT) that go from the title screen into that slot, then walks and
+     StartPos actors) into ONE save slot, the one you name with --slot (default 5, the sixth). It never touches the other slots;
+  2. starts the game with scripted button presses (HOS_INPUT_SCRIPT) that go from the title screen into the slot the game HIGHLIGHTS
+     (on the install this was written on, the sixth, slot 5: if a visit starts in the wrong place, the game loaded another slot, so
+     give --slot that one), then walks and
      turns the camera for a while so more of the area is drawn;
   3. closes the game and goes on to the next area.
 At the end it puts the slot back as it was. Before anything is changed it copies your whole user\\save folder next to the install
@@ -234,7 +236,7 @@ def plan_for(starts, wanted, per_map, adult, pick=None):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--install", help="the game folder (default: the one Epona's menu saved in %LOCALAPPDATA%\\Epona\\settings.json)")
-    ap.add_argument("--slot", type=int, default=4, help="the one save slot this tool may overwrite, 0 to 5 (default 4); it is put back at the end")
+    ap.add_argument("--slot", type=int, default=5, help="the one save slot this tool may overwrite, 0 to 5 (default 5, the one the scripted presses load); it is put back at the end")
     ap.add_argument("--maps", help="area names, comma-separated (default: every child and age-neutral area; --adult adds the adult ones)")
     ap.add_argument("--adult", action="store_true", help="also the adult areas (untested: the save is not made an adult's)")
     ap.add_argument("--starts", type=int, default=2, help="start positions to visit in each area (default 2, spread over its list)")
