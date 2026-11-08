@@ -51,7 +51,8 @@ Be honest with yourself about this before you trust it:
   presenting 110,847 frames over roughly an hour before the window was closed. That one run exercised the compiler download, the Vulkan
   headers, the prebuilt FFmpeg and its four DLLs, the controller DLL, the PATH question and the menu's arrow keys. Its last five seconds
   averaged 29 fps with frame times mostly 30 to 40 ms; whether that was the game's own frame cap or a slowdown is not known. How the game
-  looked and played is the maintainer's report, not something this page measures.
+  looked and played is the maintainer's report: they say it **played well**. That is a personal account of one session on one PC, not a
+  measurement or a systematic test.
 - **Tested besides:** that the screens draw (a script checks that every panel row is the same width); the PC checks; the translation step
   (165 s); a compile of the translated game code and host that took about 17 minutes.
 - **Not tested:** any other PC, graphics card or processor (AMD and Intel above all); the first-run legal notice (added after that run);

@@ -4,7 +4,8 @@ An honest walk through the first run, with what it costs and what can go wrong. 
 an RTX 3090, an SSD) and are meant as a rough guide, not a promise.
 
 > **Status:** built and played end to end **once**, by the maintainer, on one PC (Windows 11, an RTX 3090, 64 GB). That run drew with the
-> Vulkan back end and went on for about an hour. It has not been tried on other hardware, so expect rough edges.
+> Vulkan back end and went on for about an hour, and the maintainer reports it **played well**. It has not been tried on other hardware,
+> so expect rough edges.
 > See [`TRANSPARENCY.md`](TRANSPARENCY.md) for exactly what has and has not been run.
 
 ## Before you start

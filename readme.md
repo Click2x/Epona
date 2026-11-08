@@ -22,7 +22,7 @@
 
 **Read first:** [What to expect](docs/WHAT_TO_EXPECT.md) &middot; [Legal notice](LEGAL.md) (**you must legally own the game; none is
 included**) &middot; [Transparency](TRANSPARENCY.md) (what was and was not checked or tested) &middot; [Everything Epona changed](EPONA.md).
-Built and played end to end once by the maintainer, on one PC (Windows 11, an RTX 3090); not tried elsewhere, so expect rough edges.
+Built and played end to end once by the maintainer, on one PC (Windows 11, an RTX 3090), where it played well; not tried elsewhere, so expect rough edges.
 
 <p align="center">
   <a href="#project-status">Status</a> |

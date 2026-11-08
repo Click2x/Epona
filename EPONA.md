@@ -189,7 +189,7 @@ also restarted uncleanly three other times in the previous day, before the build
   window was closed. In its last five seconds it averaged 29 fps, with frame times mostly 30 to 40 ms (whether that was the game's own
   frame cap or a slowdown is not known). A rebuild with most of the work cached took about 9 minutes. The install folder held `hookshot.exe`
   (448 MB), `hookshot_vk.dll`, the four FFmpeg DLLs, `SDL2.dll`, the game image, the shader list, and the caches and `user` saves that only
-  a played game creates. How it looked and played is the maintainer's report.
+  a played game creates. The maintainer reports that it **played well**: a personal account of one session on one PC, not a systematic test.
 - **The first compile silently built no Vulkan back end, and Epona's own renderer check said everything was fine.** `nx2/build.py`
   looks for the Vulkan headers and FFmpeg in `RX_CPM`, then in `<work>/eg/.cache/cpm`, where `<work>` is the builder's folder under
   `%LOCALAPPDATA%`, not this project's `work\`. Epona's downloads went to the project's `work\`, and its check looked there too, so it
