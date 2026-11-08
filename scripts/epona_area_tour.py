@@ -210,7 +210,7 @@ def kill_tree(proc):
             pass
 
 
-def plan_for(starts, wanted, per_map, adult):
+def plan_for(starts, wanted, per_map, adult, pick=None):
     """The visits: up to per_map start positions of each area, spread out (a start within 15 units of one already taken is no new view)"""
     plan = []
     for area, points in sorted(starts.items()):
@@ -219,6 +219,9 @@ def plan_for(starts, wanted, per_map, adult):
         if wanted and area not in wanted:
             continue
         if not wanted and not adult and "Adult" in area:
+            continue
+        if pick is not None:   # (a start of your choice, by its number in the area's list; the same for every area)
+            plan.append((area, points[min(pick, len(points) - 1)]))
             continue
         taken = []
         for p in points[::max(1, len(points) // per_map)] + points:   # (an even spread first, then any that is left)
@@ -235,6 +238,7 @@ def main():
     ap.add_argument("--maps", help="area names, comma-separated (default: every child and age-neutral area; --adult adds the adult ones)")
     ap.add_argument("--adult", action="store_true", help="also the adult areas (untested: the save is not made an adult's)")
     ap.add_argument("--starts", type=int, default=2, help="start positions to visit in each area (default 2, spread over its list)")
+    ap.add_argument("--pick", type=int, help="visit start number N of each area (0 is the first of its list) instead of the spread; with --maps, to try them")
     ap.add_argument("--boot", type=int, default=45, help="seconds the scripted presses need to get from the title screen into the slot (default 45)")
     ap.add_argument("--dwell", type=int, default=75, help="seconds in the area after that, walking and looking around (default 75)")
     ap.add_argument("--dry-run", action="store_true", help="only list what it would do, change nothing, start nothing")
@@ -263,7 +267,7 @@ def main():
 
     starts = start_positions(romfs, os.path.join(ROOT, "work", "tour_starts.json"))
     wanted = [m for m in (a.maps or "").split(",") if m]
-    plan = plan_for(starts, wanted, max(1, a.starts), a.adult)
+    plan = plan_for(starts, wanted, max(1, a.starts), a.adult, a.pick)
     if wanted and any(w not in starts for w in wanted):
         sys.exit("Unknown area(s): %s" % ", ".join(w for w in wanted if w not in starts))
     per_visit = a.boot + a.dwell + 10
@@ -289,7 +293,8 @@ def main():
     script = "35:A,40:A,%d:A,%s" % (a.boot, ",".join("%d:%s" % (a.boot + 12 + 12 * i, tok) for i, tok in enumerate(WALK.split(","))))
     logdir = os.path.join(local, "Epona", "logs")
     os.makedirs(logdir, exist_ok=True)
-    logpath = os.path.join(logdir, "tour-%s.log" % datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+    stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    logpath = os.path.join(logdir, "tour-%s.log" % stamp)
     total0, proc = notes_count(install), None
     try:
         with open(logpath, "w", encoding="utf-8") as log:
@@ -303,7 +308,11 @@ def main():
                     time.sleep(1)
                 early = proc.poll() is not None
                 kill_tree(proc)
-                line = "%3d/%d %-34s +%d pipelines%s" % (i, len(plan), area, notes_count(install) - before,
+                try:   # (the game's own log of this visit, kept: the next visit overwrites it)
+                    shutil.copyfile(os.path.join(install, "hookshot_log.txt"), os.path.join(logdir, "tour-%s-%03d-%s.log" % (stamp, i, area)))
+                except OSError:
+                    pass
+                line = "%3d/%d %-34s start (%.1f, %.1f, %.1f)  +%d pipelines%s" % (i, len(plan), area, *p, notes_count(install) - before,
                                                        "   ENDED EARLY (exit %s)" % proc.returncode if early else "")
                 print(line)
                 log.write(line + "\n")
