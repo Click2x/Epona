@@ -135,8 +135,16 @@ Row rows[] = {
 
     {"Controls", nullptr, 0, 0, 0, nullptr,   // (hookshot: opens its page)
      "Which gamepad button and which keys press each of the Switch's buttons."},
+    // (Epona) two actions, no values: Enter runs them
+    {"Swap A and B", nullptr, 0, 0, 0, nullptr,
+     "Swaps the gamepad's A and B buttons, as on an Xbox or PlayStation pad: the bottom button confirms and the right one goes back "
+     "(the Switch has them the other way round). Press again to put them back. The keyboard's keys are on the Controls page."},
+    {"Quit to desktop", nullptr, 0, 0, 0, nullptr,
+     "Closes the game. Press Enter once to ask and again to quit; any other key cancels. Whatever the game has not saved is lost."},
 };
 constexpr int kRows = sizeof rows / sizeof rows[0];
+constexpr int kRowControls = kRows - 3, kRowSwap = kRows - 2, kRowQuit = kRows - 1;   // (the actions, the last three rows)
+bool quit_armed = false;                                                                // (the first Enter on "Quit to desktop" was pressed)
 constexpr int kMenuWidth = 360;   // (at a scale of 1: 720 lines)
 
 std::atomic<bool> open_now{false};
@@ -439,8 +447,18 @@ void paint_menu(HDC dc, uint32_t w, uint32_t h, int s) {
         SetTextColor(dc, i == selected ? RGB(255, 255, 255) : RGB(196, 204, 198));
         TextOutA(dc, 16 * s, y + 4 * s, rows[i].name, (int)strlen(rows[i].name));
         char v[40];
-        if (!rows[i].value) snprintf(v, sizeof v, ">");   // (a page)
-        else snprintf(v, sizeof v, i == selected ? "<  %s  >" : "%s", rows[i].text(*rows[i].value));
+        if (i == kRowSwap) {   // (Epona) which way round they are now
+            const int a = can_bind() ? host->binding(HOS_BIND_PAD, HOS_SW_A, 0) : -1;
+            const int b = can_bind() ? host->binding(HOS_BIND_PAD, HOS_SW_B, 0) : -1;
+            snprintf(v, sizeof v, "%s", a == HOS_PAD_SOUTH && b == HOS_PAD_EAST ? "swapped"
+                                        : a == HOS_PAD_EAST && b == HOS_PAD_SOUTH ? "Switch layout" : "custom");
+        } else if (i == kRowQuit) {
+            snprintf(v, sizeof v, "%s", quit_armed ? "Enter again to quit" : "");
+        } else if (!rows[i].value) {
+            snprintf(v, sizeof v, ">");   // (a page)
+        } else {
+            snprintf(v, sizeof v, i == selected ? "<  %s  >" : "%s", rows[i].text(*rows[i].value));
+        }
         SIZE sz{};
         GetTextExtentPoint32A(dc, v, (int)strlen(v), &sz);
         TextOutA(dc, (int)w - 16 * s - sz.cx, y + 4 * s, v, (int)strlen(v));
@@ -636,6 +654,21 @@ bool fps_take(int64_t now, int64_t shown, int64_t game, int64_t* next, int64_t* 
     return have;
 }
 
+/// (Epona) The gamepad's A and B swapped, or put back. The Switch's A is the right button and its B the bottom one, the other way round
+/// from an Xbox or PlayStation pad. The host gives a button the input it displaced (host/nn_hid.c hos_bind), so the second call
+/// of each pair only makes sure of it when something else was in the way
+void swap_a_b() {
+    const int a = host->binding(HOS_BIND_PAD, HOS_SW_A, 0), b = host->binding(HOS_BIND_PAD, HOS_SW_B, 0);
+    if (a == HOS_PAD_SOUTH && b == HOS_PAD_EAST) {   // (swapped: back to the Switch's)
+        host->bind(HOS_BIND_PAD, HOS_SW_A, 0, HOS_PAD_EAST);
+        host->bind(HOS_BIND_PAD, HOS_SW_B, 0, HOS_PAD_SOUTH);
+    } else {
+        host->bind(HOS_BIND_PAD, HOS_SW_A, 0, HOS_PAD_SOUTH);
+        host->bind(HOS_BIND_PAD, HOS_SW_B, 0, HOS_PAD_EAST);
+    }
+    save();
+}
+
 void menu_tick() {
     fullscreen_tick();
     enum { K_N = 10 };
@@ -671,7 +704,7 @@ void menu_tick() {
     cur_scale = scale;
     if (press[0] || press[6]) {
         open_now = !open_now.load(), changed = true;
-        page = 0, listening = 0;
+        page = 0, listening = 0, quit_armed = false;
     }
     if (open_now.load() && page == 1) {   // (hookshot) the Controls page
         if (!can_bind()) page = 0;
@@ -720,8 +753,21 @@ void menu_tick() {
         }
         if (changed) redraw_menu(scale);
     } else if (open_now.load()) {
+        if (quit_armed && (press[1] || press[2] || press[3] || press[4] || press[5] || press[8] || press[9])) quit_armed = false, changed = true;
         if (press[5]) open_now = false;
-        if (press[7] && !rows[selected].value && can_bind()) page = 1, csel = 0, ccol = 0, changed = true;
+        if (press[7] && !rows[selected].value) {
+            if (selected == kRowControls) {
+                if (can_bind()) page = 1, csel = 0, ccol = 0, changed = true;
+            } else if (selected == kRowSwap) {
+                if (can_bind()) swap_a_b(), changed = true;
+            } else if (selected == kRowQuit) {
+                if (quit_armed) {
+                    logf("menu: quit to desktop");
+                    ExitProcess(0);
+                }
+                quit_armed = true, changed = true;
+            }
+        }
         if (press[1]) selected = (selected + kRows - 1) % kRows, changed = true;
         if (press[2]) selected = (selected + 1) % kRows, changed = true;
         if ((press[3] || press[4] || press[7]) && rows[selected].value) {   // (Enter, or the bottom face button, as Right)
