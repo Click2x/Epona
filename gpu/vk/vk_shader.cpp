@@ -1728,7 +1728,15 @@ std::unique_ptr<Program> seed_program(size_t i, int inputs) {
     for (int k = 0; k < 8; k++)
         if (by_stage[k]) {
             code[k] = stage_of_seed(*by_stage[k]);
-            if (!code[k].ok) return st_failed++, nullptr;
+            if (!code[k].ok) {
+                // (Epona: this failure used to be counted and not said. The first 60 are named: which program of the seed, which of its
+                // stages, the stage's key and size, so a "43 failed" in the prepare line can be looked at)
+                static std::atomic<int> told{0};
+                if (told++ < 60)
+                    logf("vk: seed program %zu (inputs %d): its stage %d (NVN stage %u, key %016llx, %u bytes of code) could not be read as code",
+                         i, inputs, k, (unsigned)by_stage[k]->stage, (unsigned long long)by_stage[k]->key, (unsigned)by_stage[k]->end);
+                return st_failed++, nullptr;
+            }
         }
     auto blank = std::make_unique<NvnState>();
     blank->nvattr = 16;

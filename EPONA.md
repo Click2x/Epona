@@ -197,7 +197,11 @@ also restarted uncleanly three other times in the previous day, before the build
   header reads `hookshot c85455c`; the build log shows 419 files, 0 failed, both programs linked (the compile took 56 s, mostly cached).
   The game drew with the Vulkan back end on the RTX 3090 again, the AV1 movie decoder came up, 47,640 frames were presented and the exit
   was clean (28.8 fps in the last stretch, 60 in the menus; cap or slowdown unknown). 43 of 14,179 prepared shader programs are marked
-  "failed" in the log; there is no earlier log to compare, so whether that is new is not known. The finished folder's `licenses` folder
+  "failed". Looked at closely (a log line added in `gpu/vk/vk_shader.cpp` names them): 40 are mesh stages and 3 are one fragment stage,
+  31 distinct stages in all, and for each the log says why: the recompiler's lowering of the Switch 2 GPU code stops at an instruction it
+  does not handle (scratch registers, special-register reads, call/return linkage, dependency-barrier modes, uniform predication).
+  That is a known limit of the shader code, not something Epona or the merge changed. Whether the game ever draws with one of them,
+  and whether it shows, is not known; no draw was reported skipped in the earlier hour-long run. The finished folder's `licenses` folder
   has no FFmpeg text, because that FFmpeg was fetched before the zip's `LICENSE.txt` was being kept. The maintainer says it "worked
   flawlessly" (their account).
 - **The first compile silently built no Vulkan back end, and Epona's own renderer check said everything was fine.** `nx2/build.py`

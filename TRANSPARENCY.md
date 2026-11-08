@@ -57,7 +57,8 @@ Be honest with yourself about this before you trust it:
   again on the same PC. The build log shows 419 files compiled with 0 failed and both programs linked; the game's log header reads
   `hookshot c85455c`, the Vulkan back end on the RTX 3090 again, the AV1 movie decoder ready, and 47,640 frames presented before a clean
   "window closed, exiting" (28.8 fps over the last stretch; 60 fps in the menus). That run prepared 14,179 shader programs, 43 of which
-  the log marks "failed"; whether that is new is not known. The maintainer says it "worked flawlessly", a personal account. Still one
+  the log marks "failed": 31 distinct shader stages (mostly mesh) that the recompiler cannot yet translate, each with its reason in the
+  log. Whether the game draws with any of them is not known. The maintainer says it "worked flawlessly", a personal account. Still one
   PC, one run.
 - **Tested besides:** that the screens draw (a script checks that every panel row is the same width); the PC checks; the translation step
   (165 s); a compile of the translated game code and host that took about 17 minutes.
