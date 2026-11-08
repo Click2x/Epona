@@ -405,7 +405,8 @@ def main():
     # the renderer (C++20, NDEBUG: no asserts in it or suyu), when a wgpu-native release is there
     wgpu = a.standalone and not a.only and not LINUX and os.path.isfile(os.path.join(WGPU, "include", "webgpu", "webgpu.h"))
     if a.standalone and not a.only and not wgpu and not LINUX:
-        print("no wgpu-native at %s (WGPU_NATIVE): building without the renderer" % WGPU)
+        print("no wgpu-native at %s (WGPU_NATIVE): building without the WebGPU fallback renderer. This is expected and not an error: the game "
+              "draws with the Vulkan one (hookshot_vk.dll) unless told otherwise, which needs a Vulkan 1.3 card with mesh shaders" % WGPU)
     if wgpu:
         cxx = toolchain.need(toolchain.find("clang++"))
         gflags = target() + ["-std=c++20", "-O2", "-g0", "-DNDEBUG", "-Wno-everything",

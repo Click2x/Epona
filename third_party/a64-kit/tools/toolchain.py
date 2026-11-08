@@ -29,7 +29,46 @@ def find(tool):
     return shutil.which(tool) or os.path.join(folder, tool + exts[0])
 
 
+EMSDK_REPO = "https://github.com/emscripten-core/emsdk"
+
+
+def install_emsdk():
+    """Fetch the official emsdk into emsdk() and install its clang. Asks first (or HOOKSHOT_AUTO_EMSDK=1).
+    EMSDK_VERSION picks the release (default latest). Returns True if clang is there afterwards."""
+    import subprocess, sys
+    root = emsdk()
+    if os.environ.get("HOOKSHOT_AUTO_EMSDK") == "0":
+        return False
+    if os.environ.get("HOOKSHOT_AUTO_EMSDK") != "1":
+        if not sys.stdin or not sys.stdin.isatty():
+            return False
+        print("clang was not found. Install emsdk from %s into %s? (a few GB download) [y/N] " % (EMSDK_REPO, root),
+              end="", flush=True)
+        if sys.stdin.readline().strip().lower() not in ("y", "yes"):
+            return False
+    script = os.path.join(root, "emsdk.bat" if os.name == "nt" else "emsdk")
+    if not os.path.isfile(script):
+        if os.path.isdir(root) and os.listdir(root):
+            raise SystemExit("%s exists but has no emsdk in it; remove it or set EMSDK to another folder" % root)
+        # (git only: a zip fetched with urllib had nothing to check it against, and its script is run next)
+        if not shutil.which("git"):
+            raise SystemExit("git was not found: install Git for Windows, or get emsdk yourself from %s into %s" % (EMSDK_REPO, root))
+        subprocess.check_call(["git", "clone", "--depth", "1", EMSDK_REPO + ".git", root])
+    version = os.environ.get("EMSDK_VERSION", "latest")
+    # emsdk.bat runs plain "python", which is often missing on Windows (only the "py" launcher is installed), so
+    # point it at the Python running this build
+    env = dict(os.environ, EMSDK_PYTHON=sys.executable)
+    for step in ("install", "activate"):
+        if subprocess.call([script, step, version], cwd=root, env=env) != 0:
+            raise SystemExit("emsdk %s %s failed (see the output above). Fix that, or install emsdk by hand at %s"
+                             % (step, version, root))
+    return True
+
+
 def need(path):
+    # (not with llvm-mingw: HOOKSHOT_MINGW names the compiler then, and emsdk is not part of that route)
+    if not os.path.isfile(path) and not mingw() and path.startswith(emsdk()):
+        install_emsdk()
     if not os.path.isfile(path):
         raise SystemExit("%s not found: set EMSDK to an emsdk checkout (now %s), or put %s on PATH"
                          % (path, emsdk(), os.path.splitext(os.path.basename(path))[0]))

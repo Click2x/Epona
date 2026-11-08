@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="708" height="410" viewBox="0 0 708 410" role="img" aria-label="Epona  —  building">
+<rect width="708" height="410" rx="12" fill="#0c0c0c"/>
+<path d="M0 12a12 12 0 0 1 12-12h684a12 12 0 0 1 12 12v26H0z" fill="#1f1f1f"/>
+<circle cx="20" cy="19" r="6" fill="#ff5f57"/>
+<circle cx="40" cy="19" r="6" fill="#febc2e"/>
+<circle cx="60" cy="19" r="6" fill="#28c840"/>
+<text x="354" y="24" fill="#9a9a9a" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" text-anchor="middle">Epona  —  building</text>
+<g font-family="Cascadia Mono, Cascadia Code, Consolas, DejaVu Sans Mono, Menlo, monospace" font-size="16">
+<text x="37.2" y="93" fill="#3a96dd" font-weight="bold" textLength="374.4" lengthAdjust="spacing" xml:space="preserve">Step 1 of 4  ›  Reading your game files</text>
+<text x="37.2" y="114" fill="#ff0000" textLength="19.2" lengthAdjust="spacing" xml:space="preserve">♥♥</text>
+<text x="56.4" y="114" fill="#444444" textLength="172.8" lengthAdjust="spacing" xml:space="preserve">♥♥♥♥♥♥♥♥♥♥♥♥♥♥♥♥♥♥</text>
+<text x="229.2" y="114" fill="#3a96dd" textLength="48.0" lengthAdjust="spacing" xml:space="preserve">  10%</text>
+<text x="277.2" y="114" fill="#767676" textLength="134.4" lengthAdjust="spacing" xml:space="preserve">  step 1/4 30%</text>
+<text x="430.8" y="114" fill="#767676" textLength="182.4" lengthAdjust="spacing" xml:space="preserve">50000 files, 7.9 GB</text>
+<text x="46.8" y="135" fill="#13a10e" font-weight="bold" textLength="9.6" lengthAdjust="spacing" xml:space="preserve">✓</text>
+<text x="56.4" y="135" fill="#cccccc" textLength="67.2" lengthAdjust="spacing" xml:space="preserve">  done </text>
+<text x="123.6" y="135" fill="#767676" textLength="144.0" lengthAdjust="spacing" xml:space="preserve">(a few minutes)</text>
+<text x="37.2" y="177" fill="#3a96dd" font-weight="bold" textLength="451.2" lengthAdjust="spacing" xml:space="preserve">Step 2 of 4  ›  Translating the game to PC code</text>
+<text x="37.2" y="198" fill="#ff0000" textLength="67.2" lengthAdjust="spacing" xml:space="preserve">♥♥♥♥♥♥♥</text>
+<text x="104.4" y="198" fill="#444444" textLength="124.8" lengthAdjust="spacing" xml:space="preserve">♥♥♥♥♥♥♥♥♥♥♥♥♥</text>
+<text x="229.2" y="198" fill="#3a96dd" textLength="48.0" lengthAdjust="spacing" xml:space="preserve">  35%</text>
+<text x="277.2" y="198" fill="#767676" textLength="96.0" lengthAdjust="spacing" xml:space="preserve">  step 2/4</text>
+<text x="392.4" y="198" fill="#767676" textLength="192.0" lengthAdjust="spacing" xml:space="preserve">translating the game</text>
+<text x="46.8" y="219" fill="#13a10e" font-weight="bold" textLength="9.6" lengthAdjust="spacing" xml:space="preserve">✓</text>
+<text x="56.4" y="219" fill="#cccccc" textLength="67.2" lengthAdjust="spacing" xml:space="preserve">  done </text>
+<text x="123.6" y="219" fill="#767676" textLength="144.0" lengthAdjust="spacing" xml:space="preserve">(a few minutes)</text>
+<text x="37.2" y="261" fill="#3a96dd" font-weight="bold" textLength="240.0" lengthAdjust="spacing" xml:space="preserve">Step 3 of 4  ›  Compiling</text>
+<text x="37.2" y="282" fill="#ff0000" textLength="105.6" lengthAdjust="spacing" xml:space="preserve">♥♥♥♥♥♥♥♥♥♥♥</text>
+<text x="142.8" y="282" fill="#444444" textLength="86.4" lengthAdjust="spacing" xml:space="preserve">♥♥♥♥♥♥♥♥♥</text>
+<text x="229.2" y="282" fill="#3a96dd" textLength="48.0" lengthAdjust="spacing" xml:space="preserve">  59%</text>
+<text x="277.2" y="282" fill="#767676" textLength="134.4" lengthAdjust="spacing" xml:space="preserve">  step 3/4 35%</text>
+<text x="430.8" y="282" fill="#767676" textLength="163.2" lengthAdjust="spacing" xml:space="preserve">compiling nvdrv.c</text>
+<text x="46.8" y="303" fill="#13a10e" font-weight="bold" textLength="9.6" lengthAdjust="spacing" xml:space="preserve">✓</text>
+<text x="56.4" y="303" fill="#cccccc" textLength="67.2" lengthAdjust="spacing" xml:space="preserve">  done </text>
+<text x="123.6" y="303" fill="#767676" textLength="144.0" lengthAdjust="spacing" xml:space="preserve">(a few minutes)</text>
+<text x="37.2" y="345" fill="#3a96dd" font-weight="bold" textLength="460.8" lengthAdjust="spacing" xml:space="preserve">Step 4 of 4  ›  Putting the game folder together</text>
+<text x="37.2" y="366" fill="#ff0000" textLength="182.4" lengthAdjust="spacing" xml:space="preserve">♥♥♥♥♥♥♥♥♥♥♥♥♥♥♥♥♥♥♥</text>
+<text x="219.6" y="366" fill="#444444" textLength="9.6" lengthAdjust="spacing" xml:space="preserve">♥</text>
+<text x="229.2" y="366" fill="#3a96dd" textLength="48.0" lengthAdjust="spacing" xml:space="preserve">  99%</text>
+<text x="277.2" y="366" fill="#767676" textLength="134.4" lengthAdjust="spacing" xml:space="preserve">  step 4/4 90%</text>
+<text x="430.8" y="366" fill="#767676" textLength="259.2" lengthAdjust="spacing" xml:space="preserve">putting the folder together</text>
+<text x="46.8" y="387" fill="#13a10e" font-weight="bold" textLength="9.6" lengthAdjust="spacing" xml:space="preserve">✓</text>
+<text x="56.4" y="387" fill="#cccccc" textLength="67.2" lengthAdjust="spacing" xml:space="preserve">  done </text>
+<text x="123.6" y="387" fill="#767676" textLength="144.0" lengthAdjust="spacing" xml:space="preserve">(a few minutes)</text>
+</g></svg>

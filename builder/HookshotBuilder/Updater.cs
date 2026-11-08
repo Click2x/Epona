@@ -13,8 +13,18 @@ namespace HookshotBuilder;
 /// folder keeps).
 static class Updater
 {
-    const string Latest = "https://api.github.com/repos/NotRexed/Hookshot/releases/latest";
     const string Asset = "HookshotBuilder.zip";
+
+    /// The GitHub repository ("owner/name") whose releases are the updates: HOOKSHOT_UPDATE_REPO, else the first line of update_repo.txt
+    /// in the tools folder. None set (or not in that form) means no update source, and nothing is downloaded.
+    static string? Repo(Tools tools)
+    {
+        var repo = Environment.GetEnvironmentVariable("HOOKSHOT_UPDATE_REPO");
+        var file = Path.Combine(tools.Root, "update_repo.txt");
+        if (string.IsNullOrWhiteSpace(repo) && File.Exists(file)) repo = File.ReadLines(file).FirstOrDefault();
+        repo = repo?.Trim();
+        return repo != null && System.Text.RegularExpressions.Regex.IsMatch(repo, @"^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$") ? repo : null;
+    }
 
     public static async void FromCommandLine(MainWindow w)
     {
@@ -41,17 +51,24 @@ static class Updater
             w.UpdateBuild(tools, folder);
             return;
         }
+        var repo = Repo(tools);
+        if (repo == null)
+        {
+            w.DownloadFailed("No update source is set for this build (set HOOKSHOT_UPDATE_REPO, or put owner/name in update_repo.txt in the tools folder), " +
+                             "so nothing was downloaded. Your game folder is unchanged.");
+            return;
+        }
         try
         {
             var token = w.DownloadToken;
             using var http = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
             http.DefaultRequestHeaders.UserAgent.ParseAdd("HookshotBuilder");
-            w.Note("Asking GitHub for the latest release");
-            string? newTag = null, url = null;
+            w.Note($"Asking GitHub for the latest release of {repo}");
+            string? newTag = null, url = null, digest = null;
             long size = 0;
             using (var ask = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
             using (var both = CancellationTokenSource.CreateLinkedTokenSource(token, ask.Token))
-            using (var doc = JsonDocument.Parse(await http.GetStringAsync(Latest, both.Token)))
+            using (var doc = JsonDocument.Parse(await http.GetStringAsync($"https://api.github.com/repos/{repo}/releases/latest", both.Token)))
             {
                 newTag = doc.RootElement.GetProperty("tag_name").GetString();
                 foreach (var asset in doc.RootElement.GetProperty("assets").EnumerateArray())
@@ -59,9 +76,19 @@ static class Updater
                     {
                         url = asset.GetProperty("browser_download_url").GetString();
                         size = asset.GetProperty("size").GetInt64();
+                        if (asset.TryGetProperty("digest", out var d) && d.ValueKind == JsonValueKind.String) digest = d.GetString();
                     }
             }
             if (newTag == null || url == null) throw new InvalidOperationException("The latest release has no " + Asset + ".");
+            // (the download must be from GitHub, for this repository, and GitHub must list its SHA-256: a file with no digest to check it against is not run)
+            var uri = new Uri(url);
+            var onGitHub = uri.Scheme == Uri.UriSchemeHttps &&
+                           ((uri.Host == "github.com" && uri.AbsolutePath.StartsWith($"/{repo}/releases/download/", StringComparison.OrdinalIgnoreCase)) ||
+                            uri.Host.EndsWith(".githubusercontent.com", StringComparison.OrdinalIgnoreCase));
+            if (!onGitHub) throw new InvalidOperationException("The release's download link is not on GitHub for " + repo + ", so it was not used.");
+            if (digest == null || !digest.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase) || digest.Length != 7 + 64)
+                throw new InvalidOperationException("GitHub lists no SHA-256 for " + Asset + " in this release, so it was not downloaded.");
+            var expected = digest[7..];
             if (newTag == tools.Version)
             {
                 w.UpdateBuild(tools, folder);
@@ -72,18 +99,21 @@ static class Updater
             Directory.CreateDirectory(cache);
             var zip = Path.Combine(cache, "HookshotBuilder-" + name + ".zip");
             w.Note($"Downloading {Asset} of {newTag} ({size >> 20} MB)");
+            string? actual = null;
             using (var response = await http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, token))
             {
                 response.EnsureSuccessStatusCode();
                 var total = response.Content.Headers.ContentLength ?? size;
                 await using var from = await response.Content.ReadAsStreamAsync(token);
                 await using var to = File.Create(zip);
+                using var hash = System.Security.Cryptography.IncrementalHash.CreateHash(System.Security.Cryptography.HashAlgorithmName.SHA256);
                 var buffer = new byte[1 << 20];
                 long have = 0;
                 var shown = DateTime.MinValue;
                 for (int n; (n = await from.ReadAsync(buffer, token)) > 0;)
                 {
                     await to.WriteAsync(buffer.AsMemory(0, n), token);
+                    hash.AppendData(buffer, 0, n);
                     have += n;
                     if (total > 0 && DateTime.UtcNow - shown > TimeSpan.FromMilliseconds(200))
                     {
@@ -92,8 +122,14 @@ static class Updater
                     }
                 }
                 if (total > 0 && have != total) throw new IOException($"The download ended early ({have >> 20} of {total >> 20} MB).");
+                actual = Convert.ToHexString(hash.GetHashAndReset());
             }
-            w.Note("Unpacking the new version");
+            if (!string.Equals(actual, expected, StringComparison.OrdinalIgnoreCase))
+            {
+                try { File.Delete(zip); } catch (Exception) { }
+                throw new InvalidOperationException("The download does not match the SHA-256 GitHub lists for it, so it was deleted and not used.");
+            }
+            w.Note("Checked: SHA-256 matches. Unpacking the new version");
             // (beside this app when that folder takes writing, else in the app data folder)
             var parent = Directory.GetParent(AppContext.BaseDirectory.TrimEnd('\\', '/'))!.FullName;
             string target;

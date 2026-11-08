@@ -31,6 +31,19 @@ __pycache__/
 *.sha1
 *.log
 
+# ---- data fetched for review, before it is used (scripts/epona_fetch_work_data.py) ----
+work_incoming/
+
+# ---- generated announcement drafts (only a final one, made with --link, is meant to be committed) ----
+docs/img/*DRAFT*
+docs/img/announcement.html
+
+# ---- local agent coordination notes ----
+.agent-board/
+
+# ---- the compiler make_game.py downloads (llvm-mingw) ----
+llvm-mingw/
+
 # ---- Linux builds ----
 build-linux/
 *.so

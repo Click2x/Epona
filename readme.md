@@ -12,6 +12,18 @@
 <h4 align="center">The Legend of Zelda: Ocarina of Time (Nintendo Switch 2) running natively on Windows & Linux, with no emulator.
 </h4>
 
+> **Epona** is a fork of **[Hookshot](https://github.com/NotRexed/Hookshot) by NotRexed**, and nearly all of this code and
+> work is theirs and the people credited [below](#credits). Epona adds build-setup checks, a visible list of every tool it
+> downloads, builder logging and a safer updater. It is not made or endorsed by the original author. What changed, what you
+> need, and exactly what the builder can download: **[EPONA.md](EPONA.md)** (or run `py -I nx2/make_game.py --list-tools`).
+> **To install:** double-click `epona.bat`, or run `py -I nx2/make_game.py` in a terminal, for a guided menu.
+
+<p align="center"><img src="docs/screens/01-home.svg" alt="Epona's menu" width="560"></p>
+
+**Read first:** [What to expect](docs/WHAT_TO_EXPECT.md) &middot; [Legal notice](LEGAL.md) (**you must legally own the game; none is
+included**) &middot; [Transparency](TRANSPARENCY.md) (what was and was not checked or tested) &middot; [Everything Epona changed](EPONA.md).
+This fork has not yet produced a verified, playable game end to end: expect rough edges.
+
 <p align="center">
   <a href="#project-status">Status</a> |
   <a href="#how-to-build">How to build</a> |
@@ -145,6 +157,13 @@ To build from the command line you also need:
 - Python 3 with `lz4`, `numpy`, `capstone`, `unicorn` and `zstandard`:
   `pip install lz4 numpy capstone "unicorn>=2.1,<2.2" zstandard`
   Use Python from python.org: the Microsoft Store's Python installs packages where `python -I` does not look.
+  `make_game.py` checks for these first and offers to pip install what is missing (`HOOKSHOT_AUTO_PIP=1` answers yes).
+  On the Visual Studio route it also offers to install the missing pieces: emsdk (`HOOKSHOT_AUTO_EMSDK=1`, `EMSDK_VERSION`)
+  and Visual Studio 2022 Build Tools through winget (`HOOKSHOT_AUTO_VS=1`). It also offers to download the Vulkan, SPIR-V
+  headers and VMA (about 4 MB, checked against SHA-256) into `work\eg\.cache\cpm` when no `RX_CPM` has them
+  (`HOOKSHOT_AUTO_DEPS=1`). With no compiler set up it offers llvm-mingw first (about 182 MB, SHA-256 checked, into
+  `llvm-mingw\` here; `HOOKSHOT_AUTO_MINGW=1`), so Visual Studio and emsdk are not needed. Each asks first.
+  It also notes when Microsoft's free AV1 Video Extension is missing, which the game's movies need (a green screen without it).
 - [llvm-mingw](https://github.com/mstorsjo/llvm-mingw) (the `ucrt-x86_64` build), with `HOOKSHOT_MINGW` set to its folder. Without
   it the build uses the clang from [emsdk](https://github.com/emscripten-core/emsdk) at `C:\emsdk` with Visual Studio's C++ tools
   and the Windows SDK (`HOOKSHOT_MSVC=1` forces that route).
@@ -226,7 +245,8 @@ Bigger ways to help:
 
 ## Credits
 
-Hookshot exists thanks to the work of many people:
+Hookshot exists thanks to the work of many people. **Epona is a fork of it**: everything below is the original's, and Epona's
+own changes are the ones listed in [EPONA.md](EPONA.md).
 
 - **NotRexed**: Hookshot, BlueShell (Mario Kart World), Skybound (Tears of the Kingdom) and the a64-kit tools.
 - **[Eden](https://git.eden-emu.dev/eden-emu/eden)** and **Eglantine**: the shader recompiler and Switch 2 shader work.

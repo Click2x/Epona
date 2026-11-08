@@ -12,8 +12,24 @@
 #include <string.h>
 
 #define UPDATE_HOST L"api.github.com"
-#define UPDATE_PATH L"/repos/NotRexed/Hookshot/releases/latest"
-#define RELEASES_PAGE L"https://github.com/NotRexed/Hookshot/releases/latest"
+
+/* (the repository to ask, "owner/name", is the "repo=" line of hookshot_version.txt, written by nx2/make_game.py from
+   HOOKSHOT_UPDATE_REPO or update_repo.txt. None, or anything but letters, digits, . _ - and one slash: no update offer) */
+static int valid_repo(const char *r) {
+    int slash = 0;
+    size_t first = 0, second = 0;
+    for (; *r; r++) {
+        if (*r == '/') {
+            if (++slash > 1) return 0;
+        } else if ((*r >= 'a' && *r <= 'z') || (*r >= 'A' && *r <= 'Z') || (*r >= '0' && *r <= '9') || *r == '.' || *r == '_' || *r == '-') {
+            if (slash) second++;
+            else first++;
+        } else {
+            return 0;
+        }
+    }
+    return slash == 1 && first && second;
+}
 
 /* (a line "name=value" of a small text file, in UTF-8: its value, trimmed) */
 static int read_value(const wchar_t *path, const char *name, char *out, size_t cap) {
@@ -39,13 +55,19 @@ static int read_value(const wchar_t *path, const char *name, char *out, size_t c
 }
 
 /* (the latest release's tag, from GitHub's API: "tag_name":"...") */
-static int latest_tag(char *tag, size_t cap) {
+static int latest_tag(const char *repo, char *tag, size_t cap) {
     int ok = 0;
+    wchar_t path[256];
+    {
+        char p[200];
+        if (snprintf(p, sizeof p, "/repos/%s/releases/latest", repo) >= (int)sizeof p) return 0;
+        MultiByteToWideChar(CP_UTF8, 0, p, -1, path, 256);
+    }
     HINTERNET s = WinHttpOpen(L"Hookshot-update-check", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
     if (!s) return 0;
     WinHttpSetTimeouts(s, 2500, 2500, 2500, 3000);
     HINTERNET c = WinHttpConnect(s, UPDATE_HOST, INTERNET_DEFAULT_HTTPS_PORT, 0);
-    HINTERNET r = c ? WinHttpOpenRequest(c, L"GET", UPDATE_PATH, NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE) : NULL;
+    HINTERNET r = c ? WinHttpOpenRequest(c, L"GET", path, NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE) : NULL;
     if (r && WinHttpSendRequest(r, L"Accept: application/vnd.github+json\r\n", (DWORD)-1, WINHTTP_NO_REQUEST_DATA, 0, 0, 0) &&
         WinHttpReceiveResponse(r, NULL)) {
         DWORD status = 0, size = sizeof status;
@@ -88,9 +110,11 @@ void hos_update_check(void) {
     char have[128], builder[MAX_PATH * 3], skipped[128] = "", tag[128];
     _snwprintf(file, MAX_PATH + 64, L"%ls\\hookshot_version.txt", dir);
     if (!read_value(file, "version", have, sizeof have)) return;
+    char repo[128];
+    if (!read_value(file, "repo", repo, sizeof repo) || !valid_repo(repo)) return;   /* (no update source set: no offer) */
     _snwprintf(file, MAX_PATH + 64, L"%ls\\user\\hookshot_update_skip.txt", dir);
     read_value(file, "skip", skipped, sizeof skipped);
-    if (!latest_tag(tag, sizeof tag)) {
+    if (!latest_tag(repo, tag, sizeof tag)) {
         fprintf(stderr, "update: the latest release could not be asked for (offline?)\n");
         return;
     }
@@ -129,7 +153,9 @@ void hos_update_check(void) {
     }
     if (answer != IDYES) return;
     if (!has_builder) {
-        ShellExecuteW(NULL, L"open", RELEASES_PAGE, NULL, NULL, SW_SHOWNORMAL);
+        wchar_t page[256];
+        _snwprintf(page, 256, L"https://github.com/%hs/releases/latest", repo);
+        ShellExecuteW(NULL, L"open", page, NULL, NULL, SW_SHOWNORMAL);
         return;
     }
     wchar_t args[MAX_PATH + 256], wdir[MAX_PATH];

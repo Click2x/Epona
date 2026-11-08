@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 namespace HookshotBuilder;
 
@@ -22,6 +23,63 @@ sealed record Tools(string Root, string Python)
             if (File.Exists(Path.Combine(d.FullName, "nx2", "make_game.py")))
                 return new Tools(d.FullName, "python");
         return null;
+    }
+}
+
+/// A build's log file: %LOCALAPPDATA%\HookshotBuilder\logs\build-<date>-<time>.log, every line the build tools print with the time,
+/// the last ten kept. Logging never stops a build: a file that cannot be made or written is skipped. The header names the folders in
+/// use (and so your user name), so look through a log before posting it. The progress ticks (@@progress) are left out.
+sealed class BuildLog : IDisposable
+{
+    readonly StreamWriter? writer;
+    readonly object gate = new();
+    public string? FilePath { get; }
+
+    public BuildLog(Tools tools, IEnumerable<string> args)
+    {
+        try
+        {
+            var dir = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HookshotBuilder", "logs");
+            Directory.CreateDirectory(dir);
+            foreach (var old in new DirectoryInfo(dir).GetFiles("build-*.log").OrderByDescending(f => f.LastWriteTimeUtc).Skip(9))
+            {
+                try { old.Delete(); } catch (Exception) { }
+            }
+            FilePath = System.IO.Path.Combine(dir, $"build-{DateTime.Now:yyyyMMdd-HHmmss}.log");
+            writer = new StreamWriter(new FileStream(FilePath, FileMode.CreateNew, FileAccess.Write, FileShare.Read), new UTF8Encoding(false)) { AutoFlush = true };
+            writer.WriteLine($"Hookshot Builder {typeof(BuildLog).Assembly.GetName().Version}, {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            writer.WriteLine($"Windows {Environment.OSVersion.Version}, {Environment.ProcessorCount} logical processors");
+            writer.WriteLine($"tools: {tools.Root}, python: {tools.Python}, release: {tools.Version ?? "(source tree)"}");
+            writer.WriteLine("arguments: " + string.Join(' ', args.Select(a => a.Contains(' ') ? $"\"{a}\"" : a)));
+            writer.WriteLine();
+        }
+        catch (Exception)
+        {
+            writer?.Dispose();
+            writer = null;
+            FilePath = null;
+        }
+    }
+
+    public void Write(string line)
+    {
+        if (writer == null || line.StartsWith("@@progress")) return;
+        try
+        {
+            lock (gate) writer.WriteLine($"{DateTime.Now:HH:mm:ss} {line}");
+        }
+        catch (Exception)
+        {
+            // (a full disk or a file in use: the build goes on without its log)
+        }
+    }
+
+    public void Dispose()
+    {
+        lock (gate)
+        {
+            try { writer?.Dispose(); } catch (Exception) { }
+        }
     }
 }
 
@@ -73,23 +131,30 @@ sealed class Runner
     {
         Task.Run(() =>
         {
+            // (everything the build tools say goes to a file too: the window's details keep the last few thousand lines only)
+            using var log = new BuildLog(tools, args);
+            if (log.FilePath != null) Line?.Invoke("log: " + log.FilePath);
             try
             {
                 using var p = Process.Start(Info(tools, args))!;
                 process = p;
-                p.ErrorDataReceived += (_, e) => { if (e.Data != null) Line?.Invoke(e.Data); };
+                p.ErrorDataReceived += (_, e) => { if (e.Data != null) { log.Write(e.Data); Line?.Invoke(e.Data); } };
                 p.BeginErrorReadLine();
                 try { p.PriorityClass = ProcessPriorityClass.BelowNormal; } catch (Exception) { }
                 while (p.StandardOutput.ReadLine() is { } line)
                 {
                     if (line.StartsWith("@@error ")) error = line[8..];
+                    log.Write(line);
                     Line?.Invoke(line);
                 }
                 p.WaitForExit();
-                Finished?.Invoke(cancelled ? "cancelled" : p.ExitCode == 0 ? null : error ?? "The build tools stopped without saying why. See the details.");
+                var failure = cancelled ? "cancelled" : p.ExitCode == 0 ? null : error ?? "The build tools stopped without saying why. See the details.";
+                log.Write(failure == null ? "finished: ok" : $"finished: {failure} (exit code {p.ExitCode})");
+                Finished?.Invoke(failure);
             }
             catch (Exception e)
             {
+                log.Write("could not start: " + e);
                 Finished?.Invoke("The build tools could not start: " + e.Message);
             }
         });
