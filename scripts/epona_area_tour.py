@@ -212,6 +212,22 @@ def kill_tree(proc):
             pass
 
 
+def visit_key(area, p):
+    return "%s|%.1f|%.1f|%.1f" % (area, *p)
+
+
+def limit_cpus(proc, n):
+    """Let a started process run on the first n logical CPUs only (Windows; quietly nothing elsewhere or on failure)"""
+    try:
+        import ctypes
+        handle = ctypes.windll.kernel32.OpenProcess(0x0200 | 0x0400, False, proc.pid)   # (SET_INFORMATION | QUERY_INFORMATION)
+        if handle:
+            ctypes.windll.kernel32.SetProcessAffinityMask(handle, (1 << n) - 1)
+            ctypes.windll.kernel32.CloseHandle(handle)
+    except (OSError, AttributeError, ValueError):
+        pass
+
+
 def plan_for(starts, wanted, per_map, adult, pick=None):
     """The visits: up to per_map start positions of each area, spread out (a start within 15 units of one already taken is no new view)"""
     plan = []
@@ -243,6 +259,9 @@ def main():
     ap.add_argument("--pick", type=int, help="visit start number N of each area (0 is the first of its list) instead of the spread; with --maps, to try them")
     ap.add_argument("--boot", type=int, default=45, help="seconds the scripted presses need to get from the title screen into the slot (default 45)")
     ap.add_argument("--dwell", type=int, default=75, help="seconds in the area after that, walking and looking around (default 75)")
+    ap.add_argument("--pause", type=int, default=15, help="seconds to rest between visits (default 15)")
+    ap.add_argument("--cores", type=int, help="let the game use only the first N logical CPUs, for a PC that struggles under full load (default: all)")
+    ap.add_argument("--restart", action="store_true", help="forget which visits were done and begin again (by default a cut-short tour carries on)")
     ap.add_argument("--dry-run", action="store_true", help="only list what it would do, change nothing, start nothing")
     ap.add_argument("--yes", action="store_true", help="do not ask for confirmation")
     a = ap.parse_args()
@@ -286,12 +305,35 @@ def main():
     if not a.yes and input("Go ahead? Leave the PC alone while it runs. [y/N] ").strip().lower() not in ("y", "yes"):
         sys.exit("Nothing was changed.")
 
+    # (what a cut-short run leaves: the slot as the tour had patched it. Its original is kept apart before the first patch and put
+    # back first thing next time, so a crash or a power loss cannot make a patched slot look like your own save)
+    state = os.path.join(install, "user", "epona-tour")
+    os.makedirs(state, exist_ok=True)
+    for kept in sorted(glob.glob(os.path.join(state, "slot*-original.sav"))):
+        n = int(os.path.basename(kept)[4:6])
+        target = os.path.join(saves, users[0], "slot_%02d" % n, "progress.sav")
+        shutil.copyfile(kept, target)
+        os.remove(kept)
+        print("An earlier tour was cut short: slot %d is put back as it was before it." % n)
     backup = "%s-save-backup-%s" % (install.rstrip("\\/"), datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
     shutil.copytree(os.path.join(install, "user", "save"), backup)
     print("Your saves are copied to %s" % backup)
     with open(slot_path, "rb") as f:
         original = f.read()
     patch_slot(original, read_area(original), (0.0, 0.0, 0.0))   # (refuses a slot this tool does not understand, before anything is changed)
+    kept_original = os.path.join(state, "slot%02d-original.sav" % a.slot)
+    with open(kept_original, "wb") as f:
+        f.write(original)
+    progress_path = os.path.join(state, "progress.json")
+    done = set()
+    if not a.restart and os.path.isfile(progress_path):
+        try:
+            with open(progress_path, encoding="utf-8") as f:
+                done = set(json.load(f))
+        except (OSError, ValueError):
+            done = set()
+    if done:
+        print("%d visits are already done (--restart to begin again)." % len(done & {visit_key(x, y) for x, y in plan}))
     script = "35:A,40:A,%d:A,%s" % (a.boot, ",".join("%d:%s" % (a.boot + 12 + 12 * i, tok) for i, tok in enumerate(WALK.split(","))))
     logdir = os.path.join(local, "Epona", "logs")
     os.makedirs(logdir, exist_ok=True)
@@ -301,11 +343,15 @@ def main():
     try:
         with open(logpath, "w", encoding="utf-8") as log:
             for i, (area, p) in enumerate(plan, 1):
+                if visit_key(area, p) in done:
+                    continue
                 with open(slot_path, "wb") as f:
                     f.write(patch_slot(original, area, p))
                 env = dict(os.environ, HOS_INPUT_SCRIPT=script)
                 before, t0 = notes_count(install), time.time()
                 proc = subprocess.Popen([exe], cwd=install, env=env)
+                if a.cores:
+                    limit_cpus(proc, max(1, a.cores))
                 while time.time() - t0 < a.boot + a.dwell and proc.poll() is None:
                     time.sleep(1)
                 early = proc.poll() is not None
@@ -319,7 +365,10 @@ def main():
                 print(line)
                 log.write(line + "\n")
                 log.flush()
-                time.sleep(3)
+                done.add(visit_key(area, p))
+                with open(progress_path, "w", encoding="utf-8") as f:
+                    json.dump(sorted(done), f)
+                time.sleep(max(3, a.pause))
     except KeyboardInterrupt:
         print("Stopped by you.")
     finally:
@@ -327,6 +376,10 @@ def main():
             kill_tree(proc)
         with open(slot_path, "wb") as f:
             f.write(original)
+        try:
+            os.remove(kept_original)
+        except OSError:
+            pass
         print("Slot %d is back as it was. The pipeline list grew by %d (now %d). Log: %s" % (a.slot, notes_count(install) - total0,
                                                                                          notes_count(install), logpath))
 
