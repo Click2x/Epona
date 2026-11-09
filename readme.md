@@ -69,7 +69,7 @@ of the game.
 all 87 area start points of the game's child and age-neutral areas were visited by a scripted tour (`scripts/epona_area_tour.py`, experimental)
 and none crashed. Busy moments under about 600 draws a frame ran at about 60 fps; the busiest ran 40 to 48 fps. Desert Colossus and the
 Forest Temple hold about 60 fps once their shaders are built. First-time stutter after loading is mostly new textures being made, and 35 shader
-programs (25 stages) still fail to translate without having been needed yet. DodongoCavern, at about 32 fps, is unexplained. The full path
+programs (25 stages) still fail to translate without having been needed yet. DodongoCavern read 32 fps once but about 59 fps when re-run with its pipelines built (the first reading is unexplained). The full path
 from the start, the numbers and what is still open are in **[EPONA.md, Frame rate: where we are](EPONA.md#frame-rate-where-we-are)**.
 
 ## How to build

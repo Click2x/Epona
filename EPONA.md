@@ -267,10 +267,11 @@ measurement, not a promise for other hardware.
    textures a frame in its first seconds after loading. It is texture streaming, not shaders.
 
 **Still open**
-- **DodongoCavern** reads about 32 fps from its start point, and the GPU needs 16 to 27 ms a frame there. That start point may be inside a
-  cutscene (the game runs those at 30 fps on purpose); this is **not yet established**. A GPU profile of it was spoiled once because a
-  diagnostic setting (`RX_VK_GPU_PROFILE`) also changed the cache fingerprint and wiped the caches. The fingerprint is fixed in the source,
-  and the profile has to be redone on a build that includes the fix.
+- **DodongoCavern** read about 32 fps from its start point in the tour (the GPU needed 16 to 27 ms a frame). Re-run on a build with the
+  cache-fingerprint fix (a diagnostic setting, `RX_VK_GPU_PROFILE`, used to change the fingerprint and wipe the caches), with its
+  pipelines built: **median 59.5 fps over 28 busy moments, 3 of them under 45 fps (the first seconds after loading)**, and the GPU profile
+  adds up to only 3 to 4 ms a frame with no single heavy pass. So the 32 fps did not reproduce. Why the first reading was low is **not
+  known**; one run each, and the walk at that start point passes through a cutscene, which the game runs at 30 fps on purpose.
 - Whether the Lost Woods first-visit hitch is really gone has not been tested cold.
 - 35 shader programs still fail to translate (none was needed in the places visited).
 - Adult areas, other PCs, and AMD or Intel cards are untested.
