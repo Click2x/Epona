@@ -65,6 +65,13 @@ of the game.
 | Hyrule Field and the rest of the game | ❓ Not tested yet |
 | AMD and Intel cards | ❓ Never tested |
 
+**Epona's own frame-rate measurements** (a different PC from the one above: Windows 11, i7-12700K, RTX 3090; one run, frame generation off):
+all 87 area start points of the game's child and age-neutral areas were visited by a scripted tour (`scripts/epona_area_tour.py`, experimental)
+and none crashed. Busy moments under about 600 draws a frame ran at about 60 fps; the busiest ran 40 to 48 fps. Desert Colossus and the
+Forest Temple hold about 60 fps once their shaders are built. First-time stutter after loading is mostly new textures being made, and 35 shader
+programs (25 stages) still fail to translate without having been needed yet. DodongoCavern, at about 32 fps, is unexplained. The full path
+from the start, the numbers and what is still open are in **[EPONA.md, Frame rate: where we are](EPONA.md#frame-rate-where-we-are)**.
+
 ## How to build
 
 The game does not come ready-made: it is built on your PC from your copy.

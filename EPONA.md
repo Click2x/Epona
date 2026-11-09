@@ -237,6 +237,44 @@ also restarted uncleanly three other times in the previous day, before the build
   not opened, so nothing is known beyond that.
 - **No unexplained network code or committed binaries** were found in the original's source (see Limits for what that covers).
 
+## Frame rate: where we are
+
+Everything here is from **one PC** (Windows 11, i7-12700K, RTX 3090), with frame generation off and the handheld profile on. It is a
+measurement, not a promise for other hardware.
+
+**The path so far**
+1. **Start.** Walking around the first area ran at about 50 fps without frame generation, and entering an area for the first time
+   stuttered while the game built its shaders (one visit of the Lost Woods dropped to about 15 fps, then about 45 fps on the second).
+2. **Shaders that could not be translated.** The Switch 2 shader translator failed on 43 of 14,179 programs. After fixing two
+   instruction-lookup limits in `lower_to_maxwell.h`, 35 still fail (25 distinct stages). In every area visited since, **no draw has been
+   lost to them** (0 skipped draws from a failed program).
+3. **Warming the shaders without playing the game.** `scripts/epona_area_tour.py` edits one save slot to start in each area's start
+   point, walks for 75 seconds, and records what the game built. All **87 visits** (every child and age-neutral area, two start points
+   each) completed with no crash, and nearly all later visits built **0 new pipelines**. This is *experimental*: adult areas were not
+   visited, and the tour does not prove a first real visit is smooth.
+4. **What the 91 saved visit logs show** (busy moments only, at least 200 draws a frame):
+
+   | Draws per frame | Median fps |
+   |---|---|
+   | under 600 | about 60 |
+   | 600 to 900 | 44 |
+   | 900 to 1,200 | 48.5 |
+   | 1,200 to 1,500 | 40 |
+
+5. **Slow spots that turned out not to be real.** Desert Colossus and the Forest Temple read 36 to 44 fps in the first tour run, while
+   the shaders were still building and the tour limited the game to 8 CPU cores. Re-tested with those off, **both hold about 60 fps**.
+6. **Dips on loading.** A one-off dip to about 24 fps (and 13.7 fps in WolfosWhiteStage) lines up with the game creating several new
+   textures a frame in its first seconds after loading. It is texture streaming, not shaders.
+
+**Still open**
+- **DodongoCavern** reads about 32 fps from its start point, and the GPU needs 16 to 27 ms a frame there. That start point may be inside a
+  cutscene (the game runs those at 30 fps on purpose); this is **not yet established**. A GPU profile of it was spoiled once because a
+  diagnostic setting (`RX_VK_GPU_PROFILE`) also changed the cache fingerprint and wiped the caches. The fingerprint is fixed in the source,
+  and the profile has to be redone on a build that includes the fix.
+- Whether the Lost Woods first-visit hitch is really gone has not been tested cold.
+- 35 shader programs still fail to translate (none was needed in the places visited).
+- Adult areas, other PCs, and AMD or Intel cards are untested.
+
 ## Limits
 
 - **The prebuilt FFmpeg route has worked once.** On the maintainer's end-to-end run the download, the digest check, the extraction, the
