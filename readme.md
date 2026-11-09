@@ -5,11 +5,11 @@
 </a>
 
   <br>
-  <b>Hookshot</b>
+  <b>Epona</b>
   <br>
 </h1>
 
-<h4 align="center">The Legend of Zelda: Ocarina of Time (Nintendo Switch 2) running natively on Windows & Linux, with no emulator.
+<h4 align="center">The Legend of Zelda: Ocarina of Time (Nintendo Switch 2) running natively on Windows, with no emulator. Epona is a transparent, menu-driven fork of NotRexed&#39;s Hookshot.
 </h4>
 
 > **Epona** is a fork of **[Hookshot](https://github.com/NotRexed/Hookshot) by NotRexed**, and nearly all of this code and
@@ -34,12 +34,13 @@ Built and played end to end once by the maintainer, on one PC (Windows 11, an RT
   <a href="#license">License</a>
 </p>
 
-Hookshot is a static recompilation. The game's code is translated to C and compiled into a Windows program, the
+Hookshot, which Epona is built on, is a static recompilation. The game's code is translated to C and compiled into a Windows program, the
 console's system software is reimplemented, and the Switch 2 graphics are rebuilt on Vulkan. All of this happens
 **on your PC, from your own copy of the game**.
 <br>
 
-Discord: https://discord.gg/DVQQJphbBf
+Hookshot's (the original project's) Discord: https://discord.gg/DVQQJphbBf. It is not Epona's: report problems with Epona on this repository's
+issue tracker, not to the original author, who did not make or test Epona's changes.
 <br>
 
 > [!IMPORTANT]
@@ -49,8 +50,8 @@ Discord: https://discord.gg/DVQQJphbBf
 
 ## Project status
 
-Experimental. It has only been tested on **one PC** (Ryzen 5 7600X, RTX 4060 Ti 16 GB), mostly in the area at the start
-of the game.
+Experimental. The table below is the original project's status, from **its** testing on one PC (Ryzen 5 7600X, RTX 4060 Ti 16 GB),
+mostly the area at the start of the game. Epona's own testing is on a different PC and is described under the table.
 
 | What | Status |
 |---|---|
@@ -76,9 +77,12 @@ from the start, the numbers and what is still open are in **[EPONA.md, Frame rat
 
 The game does not come ready-made: it is built on your PC from your copy.
 
-**With Hookshot Builder, the easiest:**
+**With Epona, the easiest:** double-click `epona.bat` (or run `py -I nx2/make_game.py`). A guided menu checks your PC, shows every
+download and its source before asking, and runs the build below. What it does is in [EPONA.md](EPONA.md).
 
-1. Download the HookshotBuilder zip from the Releases page, extract it, and run `HookshotBuilder.exe`. Keep the `tools`
+**With Hookshot Builder (the original project's app, not built or tested by Epona):**
+
+1. Download the HookshotBuilder zip from the [original project's Releases page](https://github.com/NotRexed/Hookshot/releases), extract it, and run `HookshotBuilder.exe`. Keep the `tools`
    folder beside it.
 2. Choose your game's `.nup`, or your `romfs` and `exefs` folders. The builder checks that it is the right version.
 3. Choose a language and a folder for the finished game, and start the build.
@@ -102,7 +106,9 @@ A build takes about 40 minutes, and you can use your PC in the meantime.
 
 ### On Linux
 
-1. Download `Hookshot-<version>-x86_64.AppImage` from the Releases page (or the Linux AppImage workflow's artifact),
+*Linux is the original project's work; Epona has not built or run it on Linux.*
+
+1. Download `Hookshot-<version>-x86_64.AppImage` from the [original project's Releases page](https://github.com/NotRexed/Hookshot/releases),
    make it executable (`chmod +x`) and start it. It is Hookshot Builder with everything it needs inside: the compiler,
    the libraries and the Vulkan renderer. Nothing else has to be installed.
 2. Choose your `.nup` (or your `romfs` and `exefs` folders), a language and a folder for the game, and build.
@@ -134,7 +140,7 @@ with Vulkan-Headers, SPIRV-Headers and VulkanMemoryAllocator in CPM's layout (`s
 ### Updating to a newer release
 
 A new release is not a patch to your game folder: the game is built again from your copy, with the new code. Your
-saves and settings are kept. What changed in each release is in [changelog.txt](changelog.txt).
+saves and settings are kept. What changed in each release is in [changelog.txt](changelog.txt) (the original's) and [EPONA.md](EPONA.md).
 
 1. Close the game.
 2. To be safe, copy your saves somewhere first: the `user` folder beside `hookshot.exe` on Windows, or
